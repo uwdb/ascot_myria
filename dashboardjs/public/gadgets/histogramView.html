@@ -1,0 +1,382 @@
+<!-- Author: Spencer Wallace (spencerw@email.arizona.edu) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Pragma" content="no-cache">
+<title>histogramView</title>
+<!-- ASCOT Basic Style Sheets -->
+<link href="/css/reset.css" rel="stylesheet" type="text/css">
+<link href="/css/text.css" rel="stylesheet" type="text/css"> 
+<link href="/css/widgets.css" rel="stylesheet" type="text/css"> 
+</head>
+<body>
+<div id="content">
+  <div>Dataset: <select id="selectDataSetName"></select></div>
+  X-Axis:  <select id="selectXAxis"></select>
+  Bins:    <input id="selectNumberOfBins" value="10">
+  <form name="formSelectZoom">
+    <div id="divSelectZoom">
+        Selection Color: <select id="selectColor"></select>
+         <input type="radio" id="radSelectZoom" name="radSelectZoom" value="select" checked="checked" /><label for="radSelect">Select</label>
+         <input type="radio" id="radSelectZoom" name="radSelectZoom" value="zoom" /><label for="radZoom">Zoom</label>
+    </div>
+  </form>
+	<div id="divChart1" style="width: 100%; height: 400px; margin: 0 auto"></div>	
+</div>
+</body>
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.js"></script>
+<script src="/highcharts.src.js" type="text/javascript"></script>
+<script src="/util.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+var selectedDataSetId = ""; // The name of the dataset to be loaded
+var selectedXAxis = "";
+var selectedColor = "";
+var selectedDataSetName = "";
+var selectedDataSet;
+var numberOfBins = 10;
+var init = false;
+
+gadget.init = function(finishedLoading){	
+  gadget.update();
+	gadget.onNotification('dataSetChanged', gadget.update);
+  finishedLoading();
+};
+
+gadget.loadState = function(state){
+
+  if (state) {
+    selectedDataSetId = state.selectedDataSetId || "";
+    selectedXAxis = state.selectedXAxis || "";
+    selectedColor = state.selectedColor || "";
+    numberOfBins = state.numberOfBins || 10;
+    $('#selectNumberOfBins').val(numberOfBins);
+  }
+  redraw();
+
+};
+
+gadget.update = gadget.loadState;
+
+var DEFAULT_MARKER_COLOR = 'rgba(160, 160,160, 1)';
+var SELECTED_MARKER_COLOR = 'rgba(210,30,100,.9)';
+var MARKER_COLOR = { 
+  red: 'rgba(255, 0, 0, .7)',
+  green: 'rgba(0, 255, 0, .7)',
+  blue: 'rgba(0, 0, 255, .7)',
+  yellow: 'rgba(220, 220, 0, .7)',
+  grey: DEFAULT_MARKER_COLOR
+};
+
+var chart1;       // The highcharts chart object
+var bins;				  // A 2d array containing the data points held in each bin
+var dataToChart;	// The collection of points going into the histogram
+
+// When the public dataset changes, update the histogram data    
+var updateDataSetList = function(){
+  populateSelect('selectDataSetName', gadget.dashboard.getDataSetList(), selectedDataSetId);
+  updateSelectedPoints();
+ 	redraw();
+}
+
+var populateSelects = function() {
+
+  // Removing callbacks
+  $('#selectDatasetName').unbind('change');
+  $('#selectXAxis').unbind('change');
+  $('#selectYAxis').unbind('change');
+  $('#selectColor').unbind('change');
+  $('#selectNumberOfBins').unbind('change');          
+  
+  selectedColor = populateSelect("selectColor", ["red", "green", "blue", "yellow", "grey"], selectedColor).val();
+  //numberOfBins = parseInt(populateSelect("selectNumberOfBins", [1, 2, 3, 4, 5 ,6 ,7 ,8, 9 ,10], numberOfBins).val());
+  selectedDataSetName = populateSelect('selectDataSetName', gadget.dashboard.getDataSetList(), selectedDataSetName);
+  selectedDataSetId = selectedDataSetName.val();
+  selectedDataSet = gadget.dashboard.getDataSet(selectedDataSetId);
+  selectedDataSetName = selectedDataSetName.text();
+  columnNames = selectedDataSet.getColumns();
+  selectedXAxis = populateSelect("selectXAxis", columnNames, selectedXAxis).val();
+  
+   $('#selectDataSetName').change( function(){
+    if(this.selectedIndex != -1){
+      selectedDataSetName = $(this).find('option:selected').text();
+      selectedDataSet = gadget.dashboard.getDataSet($(this).val());
+      gadget.setState({ 'selectedDataSetName' : selectedDataSetName });
+    }
+  });
+
+  $('#selectXAxis').change( function(){
+    if(this.selectedIndex != -1){
+    	selectedXAxis = $(this).find('option:selected').val();
+      gadget.setState({ 'selectedXAxis' : $(this).find('option:selected').val() });
+    }
+  });
+  
+  $('#selectColor').change( function(){
+    if(this.selectedIndex != -1){
+      selectedColor = $(this).find('option:selected').val();
+    }
+  });
+
+   $('#selectNumberOfBins').change( function(){
+		numberOfBins = parseInt($(this).val());
+		gadget.setState({'numberOfBins' : numberOfBins});
+  });
+
+  if (!init) {
+    init = true;
+    $('#selectDataSetName').change();
+  }   
+
+}
+
+// Given a list of point ids, change those points in the public dataset to a given color
+var setSelectedColor = function(obj) {
+  var useColor = obj.color;
+	if (obj.color == 'grey') {
+		useColor = '';
+	}
+	var ds = gadget.dashboard.getDataSet(selectedDataSetId);
+	ds.setRecords({'color': useColor}, obj.modifiedPointIds);
+  gadget.notify('dataSetListChanged');
+	return;
+};
+	
+// Checks the public dataset to update the selection status of all the points in the histogram
+var updateSelectedPoints = function() {
+
+	if(chart1 == null)
+ 		return;	
+ 	// select or unselect all the points in the chart to change the way they look
+ 	if (selectedDataSet === undefined || selectedDataSet === null) {
+	 	return;
+	 }
+ 	var colorIndexArray = selectedDataSet.getAttributeValues('color');
+ 	var colorIndex;
+ 	var point;
+ 	
+ 	for (var j=0; j < colorIndexArray.length; ++j) {
+ 		recordsColor = selectedDataSet.getRecordsIndicesWithAttribute('color',colorIndexArray[j]);
+ 		for (var i = 0; i < recordsColor.length; i++) {
+ 			point = dataToChart[recordsColor[i]];
+ 			colorChartPoint(point,colorIndexArray[j]);
+ 		}
+ 	}
+}
+
+// Colors a selected point in the histogram dataset by the color name
+function colorChartPoint(point, colorName) {
+    if (colorName === "") {
+        colorName = "grey";
+    }
+    if(point){
+      point.color = MARKER_COLOR[colorName];
+    }
+}
+
+function getRadioValue(radio) {
+	if (!radio) {
+		return "";
+	}
+	for (var i=0, len=radio.length; i<len; i++) {
+		if (radio[i].checked) {
+			return radio[i].value;
+		}
+	}
+	return "";
+}
+
+function isRadioZoom() {
+	return (getRadioValue(document.formSelectZoom.radSelectZoom) === "zoom");
+}
+	
+// Read the public dataset into a format that can be used by the histogram
+function parseData(args) {
+	if (!selectedDataSet.isVisible())
+		return [];
+	var xCol = args.xAxis; 
+	var visible;       
+ 	var graphData = [];
+	for (i=0, len=selectedDataSet.length(); i<len; i++) {
+		var v = selectedDataSet.getRecord(i)["visible"];
+    if (v == "false" || v == false)
+    	visible = false;
+    else
+    	visible = true;
+	
+		var xVal = parseFloat(selectedDataSet.getRecord(i)[selectedXAxis]);
+		// each point has unique id so a pointer to point can be had by chart.get(id)
+   	var id = selectedDataSet.getRecord(i)["id"];
+   	if (xVal !== NaN && visible){
+   		graphData.push({id: id, x: xVal, color: selectedDataSet.getRecord(i).color });
+  		}
+  }
+  return graphData;
+}
+	
+// Organize the data into an array of bins containing the data points
+// Returns the array of bins along with an array of strings that describe
+// the bounds of each bin
+function makeBins(data) {
+	// Find the extremes of the dataset
+  var extremes = { min: Number.MAX_VALUE,
+						  max: Number.MIN_VALUE };					  
+	for (var i = 0; i < data.length; i++) {
+		if (data[i].x < extremes.min)
+			extremes.min = data[i].x;
+		if (data[i].x > extremes.max)
+			extremes.max = data[i].x;
+	}
+
+	// Create an array of length numBins and push data into each bin
+	var obj = {bins: new Array(),
+				  bounds: new Array() };		// The boundary values between each bin
+	var boundNums = new Array();
+	for (var i = 0; i < numberOfBins; i++) {
+		boundNums[i] = (((extremes.max - extremes.min)/numberOfBins)*(i+1)+extremes.min).toFixed(3);
+		obj.bins[i] = new Array();
+	}
+	for (var i = 0; i < data.length; i++) {
+		var binToInsert = Math.floor(((data[i].x - extremes.min)/(extremes.max-extremes.min))*numberOfBins);
+		if (binToInsert == numberOfBins)
+			binToInsert = numberOfBins-1;
+		obj.bins[binToInsert].push(data[i]);
+	}
+	
+	obj.bounds[0] = extremes.min.toFixed(3) + ' to ' + boundNums[0];
+	for (var i = 1; i < numberOfBins; i++) {
+		obj.bounds[i] = boundNums[i-1] + ' to ' + boundNums[i];
+	}
+	
+	return obj;
+}
+	
+// Defines the highcharts object
+function displayHistogram(args) {
+  chart1 = new Highcharts.Chart({
+		chart: {
+			renderTo: 'divChart1',
+			animation: false,
+			defaultSeriesType: 'column',
+			zoomType: 'x',
+			events: {
+				selection: function(event) { handleSelectEvent(this,event); }
+			}
+		},
+		title: {
+			text: args.dataName
+		},
+		credits: {
+         enabled: false
+      },
+      legend: {
+      	layout: 'horizontal',
+   	 	floating: false,
+  	   	backgroundColor: '#FFFFFF',
+ 	    	align: 'left',
+  	   	verticalAlign: 'top',
+  	   	y: 60,
+  	   	x: -60
+      },
+		xAxis: {
+			categories: args.categories,
+			tickmarkPlacement: 'between',
+			labels: {
+         	enabled: false
+     		},
+     		title: {
+     			text: selectedXAxis
+     		}
+		},
+		yAxis: {
+			title: {
+				text: 'Occurrences'
+			}
+		},
+		plotOptions: {
+     		series: {
+         	groupPadding: 0,
+         	pointPadding: 0
+     		}
+ 		},
+		series: [{
+			name: args.dataName,
+			data: args.series,
+			showInLegend: false,
+			animation: false,
+			color: DEFAULT_MARKER_COLOR
+		}]
+	});
+}
+
+// What to do when a selection box is dragged across the chart
+function handleSelectEvent(chart,event) {
+	// If the radio button is set to zoom, click does nothing
+	if (isRadioZoom())
+		return;
+
+	event.preventDefault();
+	
+	// Determine which bins the selection box falls onto
+	var minBin = Math.floor(event.xAxis[0].min);
+	var maxBin = Math.ceil(event.xAxis[0].max);
+	
+	// Select all of the bars in this range
+	var modifiedPointIds = []
+	for (var i = minBin; i <= maxBin; i++) {
+		// Get the ids of every point contained in the selected bars
+		for (var j = 0; j < bins[i].length; j++) {
+			modifiedPointIds.push(bins[i][j].id);
+		}
+   }
+   
+  // Change the color of the points in the public database
+	setTimeout(function() { selectedDataSet.setRecords({'color': selectedColor}, modifiedPointIds); }, .1);
+}
+   
+// Read the data from the public dataset and create the histogram   
+function redraw() {
+	
+  var dataSetsList = gadget.dashboard.getDataSetList();
+  var dataInputObj = { 
+    'xAxis': selectedXAxis 
+  };
+  var obj;
+  var highchartsData;
+
+  if (dataSetsList.length > 0) {
+    populateSelects();
+    dataToChart = parseData(dataInputObj);
+    obj = makeBins(dataToChart);
+    bins = obj.bins;
+    highchartsData = { 
+      dataName: selectedDataSetName,
+      categories: obj.bounds,
+      series: new Array() 
+    };
+    for (var i = 0; i < numberOfBins; i++) {
+      var targetColor = DEFAULT_MARKER_COLOR;
+      for (var j = 0; j < bins[i].length; j++) {
+        if (bins[i][j].color!= 'grey') {
+          targetColor = bins[i][j].color;
+        }
+      }
+      highchartsData.series[i] = { y: bins[i].length, color: targetColor };
+    }
+    displayHistogram(highchartsData);
+  }  
+  else {
+    //if (plot) {
+    //  plot.destroy();
+    //  plot = undefined;
+    //  populateSelect("selectXAxis", []);
+    //  populateSelect("selectYAxis", []);
+    //  populateSelect("selectDatasetName", []);
+    //  showPlot(false);
+  }
+
+}
+</script>
+</html>

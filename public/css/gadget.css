@@ -1,0 +1,40 @@
+/* Author: Diego Marcos (dmarcos@uw.edu) */
+body {
+    background-color: transparent;
+    margin: 0;
+		padding: 0;
+}
+
+.gadgetFrame {
+  border-radius: 5px;
+  padding: 5px;  
+  margin-right: 15px;
+  margin-top: 10px;
+  margin-bottom: 15px;  
+  min-height: 610px;
+  background-color: white;  
+  border: 1px solid rgba(0, 0, 0, .3);
+  -webkit-box-shadow: rgba(0, 0, 0, .3) 0px 0px 2px;
+  -moz-box-shadow: rgba(0, 0, 0, .3) 0px 0px 2px;
+  box-shadow: rgba(0, 0, 0, .3) 0px 0px 2px;
+
+  opacity: 0.01;
+  transition: opacity .5s ease-out;
+  -moz-transition: opacity .5s ease-out;
+  -webkit-transition: opacity .5s ease-out;
+}
+
+.gadgetCanvas {
+  background-color: white;
+  padding: 8px;
+  border-radius: 4px;
+  min-height: 610px;
+}
+
+.extraPadding{
+  padding: 5px;
+}
+
+td {
+	padding: 5;
+}

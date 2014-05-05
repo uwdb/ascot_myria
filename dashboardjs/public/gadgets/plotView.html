@@ -1,0 +1,465 @@
+<!-- Author: Ian Smith (imsmith@uw.edu) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Pragma" content="no-cache">
+<title>Plot View</title>
+
+
+<!-- ASCOT Basic Style Sheets -->
+<link href="/css/reset.css" rel="stylesheet" type="text/css">
+<link href="/css/text.css" rel="stylesheet" type="text/css"> 
+<link href="/css/widgets.css" rel="stylesheet" type="text/css"> 
+
+<style type="text/css">
+td{
+  padding: 5px;
+}
+</style>
+
+</head>
+<body>
+<div id="content">
+  <div>Dataset: <select id="selectDatasetName"></select></div>
+  <div id="divSelectDataset" style="display: inline"> 
+    X Axis: <input id="invertXAxisButton" type="button" title="Invert X Axis" value=">"></input> <select id="selectXAxis"></select>
+    Y Axis: <input id="invertYAxisButton" type="button" title="Invert Y Axis" value="^"></input> <select id="selectYAxis"></select>
+  </div>
+  <div id="divPlotToolbar" style="display: inline">
+    <form name="formSelectZoom">
+      <div id="divSelectZoom">
+        Selection Color: <select id="selectColor"></select>
+        <input type="radio" id="radioSelect" name="radSelectZoom" value="select" checked="checked" /><label for="radSelect">Select</label>
+        <input type="radio" id="radioZoom" name="radSelectZoom" value="zoom" /><label for="radZoom">Zoom</label>
+        <input type="checkbox" id="checkVerboseInfo" value="0"/><label for="checkVerboseInfo">Verbose Info</label> 
+      </div>
+    </form>
+  </div>
+  <div id="divPlot" style="display: none"></div>
+</div>
+</body>
+<!-- chart dependencies -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js" type="text/javascript"></script>
+<script src="/util.js" type="text/javascript"></script> 
+<script src="/highcharts.src.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+// Constants
+var DEFAULT_MARKER_COLOR = 'rgba(100, 100, 100, .7)';
+var MARKER_COLOR = {
+  red: 'rgba(255, 0, 0, .7)',
+  green: 'rgba(0, 255, 0, .7)',
+  blue: 'rgba(0, 0, 255, .7)',
+  yellow: 'rgba(220, 220, 0, .7)',
+  grey: 'rgba(100, 100, 100, .7)' 
+};  
+
+// Highcharts plot
+var plot;
+
+// Gadget sate
+var axisInverted = {x: false, y: false};
+var verboseTooltip = false;
+var selectedDataSetName = "";
+var selectedXAxis = "";
+var selectedYAxis = "";
+var selectedColor = "grey";
+var selectedDataSet;
+var selectionObject;
+var loadingState = false;
+//Load gadget state
+
+var init = false;
+
+// Gadget intialization
+gadget.init = function(callback){
+  gadget.update();
+  gadget.onNotification('dataSetChanged', gadget.update);  
+  
+  $("#checkVerboseInfo").change( function(){
+    verboseTooltip = $("#checkVerboseInfo").get(0).checked;
+  });
+
+  $('#invertXAxisButton').click( function(){
+    gadget.setState({ 
+      axisInverted : {
+        x : !axisInverted.x,
+        y : axisInverted.y
+    }});
+  });
+
+  $('#invertYAxisButton').click( function(){
+    gadget.setState({ 
+      axisInverted : {
+      y : !axisInverted.y,
+      x : axisInverted.x
+    }});
+  });
+
+  callback();
+}
+
+gadget.loadState = function(state){
+  if (state) {
+    axisInverted.x = state.axisInverted && state.axisInverted.x;
+    axisInverted.y = state.axisInverted && state.axisInverted.y;
+
+    if (axisInverted.x) {
+      $('#invertXAxisButton').get(0).value = '>';
+    } else {
+      $('#invertXAxisButton').get(0).value = '<';
+    }
+
+    if (axisInverted.y) {
+      $('#invertYAxisButton').get(0).value = '^';
+    } else {
+      $('#invertYAxisButton').get(0).value = 'v';
+    }
+
+    verboseTooltip = state.verboseTooltip || verboseTooltip || false;
+    $("#checkVerboseInfo").get(0).checked = verboseTooltip;
+
+    selectedDataSetName = state.selectedDataSetName || selectedDataSetName || "";
+    selectedXAxis = state.selectedXAxis || selectedXAxis || false;
+    selectedYAxis = state.selectedYAxis || selectedYAxis || false;
+    selectedColor = state.selectedColor || selectedColor || "grey";
+  }  
+  redraw();
+};
+
+gadget.update = gadget.loadState;
+
+function redraw(){
+  var dataSetsList = gadget.dashboard.getDataSetList();
+
+  if (dataSetsList.length > 0) {
+    populateSelects();
+    drawPlot();
+  }
+  else {
+    if (plot) {
+      plot.destroy();
+      plot = undefined;
+      populateSelect("selectXAxis", []);
+      populateSelect("selectYAxis", []);
+      populateSelect("selectDatasetName", []);
+      showPlot(false);
+    }
+  }
+}
+
+function populateSelects() {
+  var columnNames = [];
+
+  // Removing callbacks
+  $('#selectDatasetName').unbind('change');
+  $('#selectXAxis').unbind('change');
+  $('#selectYAxis').unbind('change');
+  $('#selectColor').unbind('change');      
+  
+  selectedColor = populateSelect("selectColor", ["red", "green", "blue", "yellow", "grey"], selectedColor).val();
+  selectedDataSetName = populateSelect('selectDatasetName', gadget.dashboard.getDataSetList(), selectedDataSetName);
+  selectedDataSet = gadget.dashboard.getDataSet(selectedDataSetName.val());
+  selectedDataSetName = selectedDataSetName.text();
+  columnNames = selectedDataSet.getColumns();
+  selectedXAxis = populateSelect("selectXAxis", columnNames, selectedXAxis).val();
+  selectedYAxis = populateSelect("selectYAxis", columnNames, selectedYAxis).val();
+
+  // add colors to the select box (pass the select Name and color array)
+  $('#selectDatasetName').bind('change', function(){
+    if(this.selectedIndex != -1){
+      selectedDataSetName = $(this).find('option:selected').text();
+      selectedDataSet = gadget.dashboard.getDataSet($(this).val());
+      if(selectedDataSet){
+        columnNames = selectedDataSet.getColumns();
+        selectedXAxis = populateSelect("selectXAxis", columnNames, selectedXAxis).val();
+        selectedYAxis = populateSelect("selectYAxis", columnNames, selectedYAxis).val();
+      }
+      gadget.setState({ 'selectedDataSetName' : selectedDataSetName });
+    }    
+  });
+  
+  $('#selectXAxis').bind('change', function(){
+    if(this.selectedIndex != -1){
+      gadget.setState({ 'selectedXAxis' : $(this).find('option:selected').val() });
+    }
+  });
+  
+  $('#selectYAxis').bind('change', function(){
+    if(this.selectedIndex != -1){
+      gadget.setState({ 'selectedYAxis' : $(this).find('option:selected').val() });
+    }
+  });
+  
+  $('#selectColor').bind('change', function(){
+    selectedColor =  $(this).find('option:selected').val();
+  });    
+  
+  if(!init) {
+    init = true;
+    $('#selectDatasetName').change();
+  }
+
+};
+
+// Highcharts plot options
+var chartOptions = {
+  chart: {
+    renderTo: 'divPlot',
+    defaultSeriesType: 'scatter',
+    zoomType: 'xy',
+    events : {
+      selection: function(selectionEvent) {
+      // check if the zoom or select radio is checked
+      // also, only select if there is an xAxis property in event (allows reset zoom)
+        if ($('#radioSelect').get(0).checked && ("xAxis" in selectionEvent)) {
+          selectionEvent.preventDefault();
+          selectionObject = {'seriesId': 'series1', 'xMin': selectionEvent.xAxis[0].min, 'xMax':  selectionEvent.xAxis[0].max, 
+                              'yMin': selectionEvent.yAxis[0].min, 'yMax':  selectionEvent.yAxis[0].max, color: selectedColor};
+          // We make this call ashyncronous and the plot gives the impression of being more responsive
+          setSelectedByMinMax(selectionObject);
+        }
+      }
+    }
+  },
+  credits: { enabled: false },
+  legend: { enabled: false},
+  title: { text: '' },
+  loading: { showDuration: 0, hideDuration: 0 },
+  xAxis: {
+    title: { enabled: false, text: '' },
+    reversed: false,
+    startOnTick: true,
+    endOnTick: true,
+    showLastLabel: true
+  },
+  yAxis: {
+    title: { text: '' },
+    reversed: false
+  },
+  tooltip: {
+    formatter: function() { return generateToolTip(this.x, this.y, this.point.id) }
+  },
+  plotOptions: {
+    scatter: {
+      animation: false,
+      color: DEFAULT_MARKER_COLOR, 
+      id: 'series1'                    
+    }
+  },
+  series: [{
+    name: '',
+    data: [],
+    point: {
+      events: {
+        click: function(event) {
+          if (!(event.ctrlKey || event.metaKey)) { // check windows ctrl and mac meta
+            // color point
+            var selectedMarkerColor = selectedColor;
+            if (getPointColor(this) !== selectedMarkerColor) {
+              setPointColor(this, selectedMarkerColor);
+            } 
+            else {
+              setPointColor(this, "");
+            }
+            plot.redraw();
+          } 
+          else { // zoom to point
+            zoomToPoint(this); 
+          }
+        }
+      }
+    }
+  }]
+} 
+
+function generateToolTip(xValue, yValue, pointId) {  
+  var dataSet;
+  var record;
+  var info = [];
+  if (verboseTooltip) {
+    record = selectedDataSet.getRecord(pointId);
+    if (record){
+      for (var prop in record) {
+        info.push(prop + ": " + record[prop] + "<br/>");
+      }
+    }
+    return info.join("");
+  } 
+  else { 
+    return  $(plot.yAxis[0].axisTitle.element).text() + ' : ' + yValue + '<br/>' + $(plot.xAxis[0].axisTitle.element).text()  +' : ' + xValue;
+  }
+}
+
+function plotData(){
+  if (selectedDataSetName ===  "" || selectedXAxis === "" || selectedYAxis === "") {
+    alert("Choose a dataset, x axis, and y axis");
+    return;
+  }
+  else{
+    drawPlot();
+    gadget.notify("plotRendered", { 'dataSetName' : selectedDataSetName, 'color' : selectedColor, 'xAxis' : selectedXAxis, 'yAxis' : selectedYAxis }, {'private' : true});
+  }
+} 
+                                                                        
+
+  
+function setSelectedByMinMax(obj) {
+  var data = plot.get(obj.seriesId).data;
+  var selectedIds = [];  
+  var point;
+  var i;
+
+  for (i=0, len=data.length; i<len; i++){ 
+    point = data[i];
+    if (point.x <= obj.xMax && point.x >= obj.xMin && point.y <= obj.yMax && point.y >= obj.yMin) {
+      selectedIds.push(point.id);
+      colorChartPoint(point, selectedColor);         
+    }
+  }
+
+  // update the dataset with the selected points 
+  // set dataset points colors in bulk
+  if(selectedIds.length > 0){
+    setTimeout(function() { selectedDataSet.setRecords({'color': selectedColor}, selectedIds); }, .1);
+  }
+   
+}
+
+// Checks the public dataset to update the selection status of all the points in the chart
+function updateSelectedPoints() {
+  var colorIndexArray;
+  var colorIndex;
+  var point;
+
+  if(plot == null)
+    return; 
+    
+  plot.showLoading();
+  // select or unselect all the points in the chart to change the way they look
+  if (!selectedDataSet) {
+    return;
+  }
+  colorIndexArray = selectedDataSet.getAttributeValues('color');
+  // color selected points
+  for (color in colorIndexArray){
+    colorIndex = colorIndexArray[color];
+    for (var j=0, lenj=colorIndex.length; j<lenj; j++){
+      point = plot.get(colorIndex[j]);  // id is [0]
+      if (point !== null) {
+        colorChartPoint(point, color);  
+      }
+    }
+  }
+  plot.hideLoading();
+
+}
+
+// Colors a selected point on chart by the color name
+function colorChartPoint(point, colorName) {
+  if (colorName === "") {
+    colorName = "grey";
+  }
+  point.update({color: MARKER_COLOR[colorName], marker: {fillColor: MARKER_COLOR[colorName]}}, false);
+}
+
+// colors chart point and writes it to dataset
+function setPointColor(point, colorName) {
+  if (colorName === "grey") {
+    colorName = "";
+  }
+  colorChartPoint(point, colorName);
+  selectedDataSet.setRecords({'color': colorName}, point.id);  
+}
+
+// Zooms the viewport to point by writing CelestialCoordinate to public variable
+function zoomToPoint(point) {
+  var cc = selectedDataSet.getRecord(point.id);
+  if (cc !== null && cc !== undefined) {
+    gadget.notify("centerOfCoordinatesChanged",{'longitude': parseFloat(cc.ra) - 180, 'latitude': parseFloat(cc.dec)});
+  }
+}
+
+function getPointColor(point) {
+  return selectedDataSet.getRecord(point.id);
+}
+
+function drawPlot() {
+  if (selectedDataSetName ===  "" || selectedXAxis === "" || selectedYAxis === "") {
+    return;
+  }
+
+  if (!plot) {
+    plot = new Highcharts.Chart(chartOptions);     
+  }
+  plot.setTitle({ text: selectedDataSetName });
+  
+  if (plot.xAxis[0] && plot.yAxis[0]) {
+    plot.xAxis[0].reversed = axisInverted.x;
+    plot.yAxis[0].reversed = axisInverted.y;
+  }
+
+  // Set Data + Axis labels + Redraw
+  if(plot.xAxis[0].axisTitle && plot.yAxis[0].axisTitle){
+    $(plot.xAxis[0].axisTitle.element).text(selectedXAxis);
+    $(plot.yAxis[0].axisTitle.element).text(selectedYAxis);
+  }
+  else{
+    plot.series[0].xAxis.options.title.text = selectedXAxis;
+    plot.series[0].yAxis.options.title.text = selectedYAxis;
+  }
+  // Legend
+  //$(plot.series[0].legendItem.element).text(yAxisLabel + " vs " + xAxisLabel)
+  plot.series[0].setData(generatePoints(), true);
+
+  $('#divPlot').css('height', '400px');
+  updateSelectedPoints(); 
+  showPlot(true); 
+}
+
+function generatePoints(){
+	if (!selectedDataSet.isVisible())
+		return [];
+  var xValue;
+  var yValue;
+  var shift;
+  var visible;
+  var points = [];
+  if (!selectedDataSet)
+    return points;
+  
+  for (i=0,len=selectedDataSet.length(); i<len; i++) {
+    xValue = selectedDataSet.getRecord(i)[selectedXAxis]; 
+    xValue = /\./.test(xValue)? parseFloat(xValue) : xValue;
+    yValue = selectedDataSet.getRecord(i)[selectedYAxis];
+    yValue = /\./.test(yValue)? parseFloat(yValue) : yValue;
+    var v = selectedDataSet.getRecord(i)["visible"];
+    if (v == "false" || v == false)
+    	visible = false;
+    else
+    	visible = true;
+    // each point has unique id so a pointer to point can be had by chart.get(id)
+    if (xValue !== NaN && yValue !== NaN && visible){
+      points.push({'id': selectedDataSet.getRecord(i)["id"],
+                    x: xValue, 
+                    y: yValue,
+                    color: MARKER_COLOR[selectedDataSet.getRecord(i).color],
+                    marker: { fillColor: MARKER_COLOR[selectedDataSet.getRecord(i).color] } 
+                  });
+    }
+  }
+  return points;
+}    
+
+function showPlot(show) {
+  if (show) {
+    $('#divPlot').css('display', 'block');
+  }
+  else {
+    $('#divPlot').css('display', 'none');
+  }
+  gadget.resize();
+}            
+</script>
+</html>
