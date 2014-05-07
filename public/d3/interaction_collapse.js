@@ -17,8 +17,8 @@ d3.select("#mergerTreeResult").style("width", clientWidth+"px");
 d3.select("#table").style("width", clientWidth+"px");
 d3.select("#toptable").style("width", clientWidth+"px");
 d3.select("#graphLabelTable").style("width", clientWidth+"px");
-d3.select("#sliderContainer").style("width", (clientWidth-200)+"px"); 
-d3.select("#sliderContent").style("width", (clientWidth-200)+"px"); 
+//**SIM d3.select("#sliderContainer").style("width", (clientWidth-200)+"px"); 
+//**SIM d3.select("#sliderContent").style("width", (clientWidth-200)+"px"); 
 d3.select("#massInformation").style("width", clientWidth/2 +"px");
 d3.select("#particleInformation").style("width", clientWidth/2 +"px");
 //d3.select("#windowDiv").style("height", (clientHeight-60)+"px");
@@ -481,7 +481,7 @@ d3.csv("./../d3/similarities.csv", function(error3, raw_sims) {
         .attr("dy", ".35em")
         .text(function(d) {return d.text});
 
-    populateSlider();
+    //**SIM populateSlider();
     update(root);
     //start at zoomed out state
 });
@@ -883,7 +883,7 @@ function changeTree(grp) {
             nodesMap = halo.nodes;
             linksMap = halo.links;
             changeGraph();
-            changeSlider();
+            //**SIM changeSlider();
             //exit current tree
             var node = graph.selectAll("g.node")
             .data([]);

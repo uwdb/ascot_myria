@@ -158,7 +158,7 @@ app.get('/myria/mdata', function(req, postResponse){
   var request = http.request({
     hostname: "vega.cs.washington.edu",
     port: 1776,
-    path: "/dataset/user-public/program-adhoc/relation-" + req.param('table') + '/data?format=json',
+    path: "/dataset/user-" + (req.param('user') || 'public') + "/program-" + (req.param('program') || 'adhoc') + "/relation-" + req.param('table') + '/data?format=json',
     method: "get",
     headers: {
       "Accept": "*/*"
@@ -171,6 +171,7 @@ app.get('/myria/mdata', function(req, postResponse){
     }
     res.setEncoding('utf8');
     res.on('data', function(chunk) {
+      console.log(chunk);
       postResponse.write(chunk);
     });
     res.on('end', function() {

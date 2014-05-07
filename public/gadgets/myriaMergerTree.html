@@ -31,9 +31,11 @@
   <div id="content">
     <div id="mergerTree">
       <div id="mergerTreeOptions">
-        <label>Group: </label>
+        <select id="mergerTreeGroups" onchange="tryFormAndSendMergerTreeQuery();" onfocus="this.selectedIndex = -1;">
+        </select>
+        <!-- <label>Group: </label>
         <input id="mergerTreeGroup" onkeydown="if (event.keyCode == 13) document.getElementById('mQueryButton').click()" style="margin:0px; padding:4px"></input>
-        <button id="mQueryButton" onclick="tryFormAndSendMergerTreeQuery()" style="padding:4px;">Execute</button>
+        <button id="mQueryButton" onclick="tryFormAndSendMergerTreeQuery()" style="padding:4px;">Execute</button> -->
         <span id="error"></span>
       </div>
       <div id="resultLoading"></div>
@@ -41,14 +43,14 @@
         <!-- <div class="subsecHeader">Result</div> -->
         <!-- <div id="resultLoading"></div> -->
         <table style="border-spacing: 0.5px;">
-          <tr>
+          <!-- <tr>
             <td>
               <div id="sliderContainer">
                 <div id="similarHalo">Similar Halos</div>
                 <div id="sliderContent"></div>
               </div>
             </td>
-          </tr>
+          </tr> -->
           <tr>
             <td>
               <table id="toptable" style="margin:3px 0px;">
@@ -160,6 +162,7 @@
       // Hide MergerTreePanel
       showMergerTreePanel(false);
       showLoadingIcon(false);
+      populateMergerTreeGroups();
     };
 
     gadget.init = function(callback){
@@ -258,7 +261,8 @@
       displayErrorMessage('');
       clearPreviousMergerTreeDisplay();
       showMergerTreePanel(false);
-      selectedGroup = document.getElementById('mergerTreeGroup').value;
+      selectedGroup = document.getElementById('mergerTreeGroups').value;
+      console.log(selectedGroup);
       var intRegex = /^\d+$/;
       if (!intRegex.test(selectedGroup)) {
         displayErrorMessage('Invalid group number.');
@@ -295,6 +299,24 @@
       } else {
         loadingIcon.style.display = "none";
       }
+    };
+
+    var populateMergerTreeGroups = function() {
+      console.log("Here");
+      //get cosmo 512 first snap shot to see group numbers 
+      //$.get(MYRIA_MDATA_URL, {user: 'astro', program: 'cosmo50', table: 'snapshot512Hash'}, function(res) {
+          //console.log("RES", res);
+          // if (res.length == 0) {
+          //   displayErrorMessage('No table with your specified name');
+          //   return;
+          // }
+          d3.select("#mergerTreeGroups")
+            .selectAll("option")
+            .data([80,84,73])
+            .enter().append("option")
+            .attr("value", function(d){ return parseInt(d); })
+            .text(function(d) { return d; });
+        //}, 'json');
     };
 
     var download = function() {
