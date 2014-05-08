@@ -149,10 +149,10 @@ var graph = svg.select(".graph");
 
 //******************************SET UP LEFT PANEL
 //scales for both charts
-var xHeight = clientHeight/6-80; //used for various sections of the graph/areas
-var x = d3.scale.linear().range([0, clientWidth/3-50]);
+var xHeight = clientHeight/5-80; //used for various sections of the graph/areas
+var x = d3.scale.linear().range([0, clientWidth/3.5]);
 var y = d3.scale.linear().range([xHeight, 0]);
-var xParticle = d3.scale.linear().range([0, clientWidth/3-50]);
+var xParticle = d3.scale.linear().range([0, clientWidth/3.5]);
 var yParticle = d3.scale.linear().range([xHeight, 0]);
 
 //axes formatting
@@ -189,11 +189,9 @@ var brushParticle = d3.svg.brush()
     
 //adding brushes to panels
 var svgBrushMass = d3.select("#massPanel").append("svg")
-    .attr("width", clientWidth/3-10) //width a bit more b/c of text
-    .attr("height", clientHeight/8+20);
+    .attr("height", clientHeight/8+40);
 var svgBrushParticle = d3.select("#particlePanel").append("svg")
-    .attr("width", clientWidth/3-10) //width a bit more b/c of text
-    .attr("height", clientHeight/8+20);
+    .attr("height", clientHeight/8+40);
     
 //transform position to brush 
 var contextMass = svgBrushMass.append("g")
@@ -213,15 +211,15 @@ d3.csv("./../d3/similarities.csv", function(error3, raw_sims) {
     var haloMassValuesLog = [], haloParticleValuesLog = [];
     minMass = raw_nodes[0].HaloMass;
     minParticle = raw_nodes[0].TotalParticles;
-    minSharedParticle = raw_links[0].sharedParticleCount;
+    minSharedParticle = raw_links[0].SharedParticlesCount;
     //LUMINOSITYminLum = raw_nodes[0].lum;
     //LUMINOSITYmaxLum = raw_nodes[0].lum;
 
     timeMap = d3.nest().key(function(d) { return d.db }).map(raw_times, d3.map);
 
     raw_links.forEach(function(d) {
-        maxSharedParticle = Math.max(maxSharedParticle, +d.sharedParticleCount);
-        minSharedParticle = Math.min(minSharedParticle, +d.sharedParticleCount);
+        maxSharedParticle = Math.max(maxSharedParticle, +d.SharedParticlesCount);
+        minSharedParticle = Math.min(minSharedParticle, +d.SharedParticlesCount);
     });
 
     raw_nodes.forEach(function(d){
@@ -278,7 +276,7 @@ d3.csv("./../d3/similarities.csv", function(error3, raw_sims) {
     //each array will be of length one
     haloMap = d3.map();
 
-    var similaritiesMap = d3.nest().key(function(d) { return d.from_Group; }).map(raw_sims, d3.map);
+    //** SIMvar similaritiesMap = d3.nest().key(function(d) { return d.from_Group; }).map(raw_sims, d3.map);
     var tempHaloNodesMap = d3.nest().key(function(d) { return d.NowGroup; }).map(raw_nodes, d3.map);
     var tempHaloLinksMap = d3.nest().key(function(d) { return d.NowGroup; }).map(raw_links, d3.map);
 
@@ -301,9 +299,10 @@ d3.csv("./../d3/similarities.csv", function(error3, raw_sims) {
         tempRoot = tempNodesMap.get(tempHaloLinksMap.get(k)[0].NowHalo)[0];
         tempRoot.x0 = height/2;
         tempRoot.y0 = 0;
-        haloMap.set(k, {root: tempRoot, nodes: tempNodesMap, links: tempLinksMap, similarities: similaritiesMap.get(k)});
+        haloMap.set(k, {root: tempRoot, nodes: tempNodesMap, links: tempLinksMap});
+        // similarities: similaritiesMap.get(k)
     });
-    console.log(haloMap);
+    //console.log(haloMap);
     //default group
     var halo = haloMap.get(selectedGroup);
     root = halo.root;
@@ -376,11 +375,11 @@ d3.csv("./../d3/similarities.csv", function(error3, raw_sims) {
     y.domain([0, d3.max(dataBinMassCurrentHalo, function(d) { return d.y; })]);
     yParticle.domain([0, d3.max(dataBinParticleCurrentHalo, function(d) { return d.y; })]);
     //tie context to area
-    contextMass.append("path")
-        .datum(dataBinMassAllHalos)
-        .attr("class", "area")
-        .attr("d", area)
-        .style("opacity", ".7");
+    // contextMass.append("path")
+    //     .datum(dataBinMassAllHalos)
+    //     .attr("class", "area")
+    //     .attr("d", area)
+    //     .style("opacity", ".7");
                 
     contextMass.append("path")
         .datum(dataBinMassCurrentHalo)
@@ -388,11 +387,11 @@ d3.csv("./../d3/similarities.csv", function(error3, raw_sims) {
         .attr("d", area)
         .style("opacity", ".9");
 
-    contextParticle.append("path")
-        .datum(dataBinParticleAllHalos)
-        .attr("class", "area")
-        .attr("d", areaParticle)
-        .style("opacity", ".7");
+    // contextParticle.append("path")
+    //     .datum(dataBinParticleAllHalos)
+    //     .attr("class", "area")
+    //     .attr("d", areaParticle)
+    //     .style("opacity", ".7");
         
     contextParticle.append("path")
         .datum(dataBinParticleCurrentHalo)
@@ -413,8 +412,8 @@ d3.csv("./../d3/similarities.csv", function(error3, raw_sims) {
         .attr("text-anchor", "middle")
         .style("font-size", "14px")
         .style("font-weight", "bold")
-        .attr("x", clientWidth/8-22)
-        .attr("y", clientHeight/8-5)
+        .attr("x", clientWidth/7.0)
+        .attr("y", clientHeight/7.0)
         .text("Log Mass (1e10)");
         //1e10 is not the same as e^10; this means 1 x 10^10
 
@@ -442,8 +441,8 @@ d3.csv("./../d3/similarities.csv", function(error3, raw_sims) {
         .attr("text-anchor", "middle")
         .style("font-size", "14px")
         .style("font-weight", "bold")
-        .attr("x", clientWidth/8-22)
-        .attr("y", clientHeight/8-5)
+        .attr("x", clientWidth/7.0)
+        .attr("y", clientHeight/7.0)
         .text("Total Particle Count");
           
     contextParticle.append("g")
@@ -466,7 +465,7 @@ d3.csv("./../d3/similarities.csv", function(error3, raw_sims) {
         .selectAll("g")
             .data(areaColors)
         .enter().append("g")
-            .attr("transform", function(d, i) { return "translate(" + i * 100 + ", 0)"; });
+            .attr("transform", function(d, i) { return "translate(" + i * 100 + ", 1)"; });
             
         legend.append("rect")
         .attr("width", 12)
@@ -477,7 +476,7 @@ d3.csv("./../d3/similarities.csv", function(error3, raw_sims) {
 
         legend.append("text")
         .attr("x", 24)
-        .attr("y", 9)
+        .attr("y", 6)
         .attr("dy", ".35em")
         .text(function(d) {return d.text});
 
@@ -686,7 +685,7 @@ function update(source) {
         .attr("d", function(d) {
             return diagonal(d);
         })
-        .style("stroke-width", function(d) { return linkScale(+linksMap.get(d.target.HaloID)[0].sharedParticleCount); })
+        .style("stroke-width", function(d) { return linkScale(+linksMap.get(d.target.HaloID)[0].SharedParticlesCount); })
         .style("opacity","0.4")
         .style("stroke-linecap", "round"); //can be butt or square
 
@@ -1041,10 +1040,10 @@ function resetTree() {
 }
 
 function download() {
-    var data = "GrpID,Timestep,Mass,Lum\n";
+    var data = "GrpID,Time(gyr),Mass\n";
     function buildString(d) {
         if (d.selected) {
-            data += [d.GrpID,timeMap.get(d.Timestep)[0].step,d.HaloMass,d.lum].join(',') + "\n";
+            data += [d.GrpID,timeMap.get(d.Timestep)[0].time,d.HaloMass].join(',') + "\n";
         }
         if (d.children) {
             d.children.forEach(function(f) {buildString(f);});
@@ -1254,8 +1253,8 @@ function tipHtml(d) {
     return "Halo Group: <span style='color:" + color +"'>"  + d.GrpID + "</span><br/>" 
           + "Halo Mass: <span style='color:" + color +"'>" + (+d.HaloMass).toExponential(3) + "</span><br/>" 
           + "Total Particles: <span style='color:" + color +"'>" + d.TotalParticles + "</span><br/>"
-          + "Total Dark Particles: <span style='color:" + color +"'>" + d.TotalDarkParticles + "</span><br/>"
-          + "Total Luminosity: <span style='color:" + color +"'>" + (+d.lum).toExponential(3) + "</span><br/>";
+          + "Total Dark Particles: <span style='color:" + color +"'>" + d.TotalDarkParticles + "</span><br/>";
+         // + "Total Luminosity: <span style='color:" + color +"'>" + (+d.lum).toExponential(3) + "</span><br/>";
     // return "Halo Group: <span style='color:" + color +"'>"  + d.GrpID + "</span><br/>" 
     //       + "Total Mass: <span style='color:" + color +"'>" + (+d.HaloMass).toExponential(3) + "</span><br/>" 
     //       + "Stelar Mass: <span style='color:" + color +"'>" + d.StelarMass + "</span><br/>"

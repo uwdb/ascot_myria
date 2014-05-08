@@ -171,7 +171,6 @@ app.get('/myria/mdata', function(req, postResponse){
     }
     res.setEncoding('utf8');
     res.on('data', function(chunk) {
-      console.log(chunk);
       postResponse.write(chunk);
     });
     res.on('end', function() {
