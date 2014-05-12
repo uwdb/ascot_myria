@@ -31,6 +31,16 @@
     <div id="content">
       <div id="mergerTree">
         <div id="mergerTreeOptions">
+          <div id="mergerTreeUserOptions">
+            <label>Username </label>
+            <input id="mergerTreeUsername" onchange="checkDisableGroups()"></input>
+          </div>
+          <div id="mergerTreeMassRangeOptions">
+            <label>Mass Range </label>
+            <input id="mergerTreeMassMin"></input>
+            <label> to </label>
+            <input id="mergerTreeMassMax"></input>
+          </div>
           <label>Group </label>
           <select id="mergerTreeGroups" style = "width: 70px;" onchange="tryFormAndSendMergerTreeQuery();" onfocus="this.selectedIndex = -1;">
           </select>
@@ -156,12 +166,15 @@
   };
 
   var selectedGroup = -1;
+  var selectedMinMassRange = -1;
+  var selectedMinMassRange = -1;
   var mergerTree;
   var setUp = function() {
     // Hide MergerTreePanel
     showMergerTreePanel(false);
     showLoadingIcon(false);
     populateMergerTreeGroups();
+    document.getElementById("mergerTreeGroups").disabled=true;
   };
 
   gadget.init = function(callback){
@@ -184,6 +197,7 @@
 
   var tryGetResult = function(queryId, queryTypeEnum) {
     // Keep enquiring for the query status until the status is success.
+    username = document.getElementById('mergerTreeUsername').value;
     switch(queryTypeEnum) {
       case queryType.MERGER_TREE_Q1:
       $.get(MYRIA_MQUERY_URL, {query: queryId}, function(res) {
@@ -192,8 +206,10 @@
         } else {
           var conditions = {
             group: selectedGroup,
+            minMassRange: selectedMinMassRange,
+            maxMassRange: selectedMaxMassRange,
             dataTable: "astro:cosmo50:cosmo50CompleteEdges",
-            resultTable: "astro:cosmo50:cosmo50SelectedEdges"
+            resultTable: username + ":cosmo50:cosmo50SelectedEdges"
           };
           sendMergerTreeQuery(conditions, queryType.MERGER_TREE_Q2);
         }
@@ -205,7 +221,7 @@
           tryGetResult(queryId, queryTypeEnum);
         } else {
     // Then get the result.
-    $.get(MYRIA_MDATA_URL, {user: 'astro', program: 'cosmo50', table: 'cosmo50SelectedNodes'}, getSecondMergerTreeQueryResult, 'json');
+    $.get(MYRIA_MDATA_URL, {user: username, program: 'cosmo50', table: 'cosmo50SelectedNodes'}, getSecondMergerTreeQueryResult, 'json');
     }
     });
       break;
@@ -220,7 +236,8 @@
   };
 
   var getSecondMergerTreeQueryResult = function(data) {
-    $.get(MYRIA_MDATA_URL, {user: 'astro', program: 'cosmo50', table: 'cosmo50SelectedEdges'}, function(res) {
+    username = document.getElementById('mergerTreeUsername').value;
+    $.get(MYRIA_MDATA_URL, {user: username, program: 'cosmo50', table: 'cosmo50SelectedEdges'}, function(res) {
       displayMergerTreeResult(data,res);
     }, 'json');
   }
@@ -251,6 +268,7 @@
     }
     var queryId = res.queryId;
     console.log('queryId ' + queryId);
+
     tryGetResult(queryId, queryType);
     }, 'json');
   }
@@ -260,6 +278,10 @@
     clearPreviousMergerTreeDisplay();
     showMergerTreePanel(false);
     selectedGroup = document.getElementById('mergerTreeGroups').value;
+    username = document.getElementById('mergerTreeUsername').value;
+    selectedMinMassRange = document.getElementById('mergerTreeMassMin').value;
+    selectedMaxMassRange = document.getElementById('mergerTreeMassMax').value;
+
     //console.log(selectedGroup);
     var intRegex = /^\d+$/;
     if (!intRegex.test(selectedGroup)) {
@@ -269,9 +291,12 @@
     showLoadingIcon(true);
     var conditions = {
       group: selectedGroup,
+      minMassRange: selectedMinMassRange,
+      maxMassRange: selectedMaxMassRange,
       dataTable: "astro:cosmo50:cosmo50CompleteNodes",
-      resultTable: "astro:cosmo50:cosmo50SelectedNodes"
+      resultTable: username + ":cosmo50:cosmo50SelectedNodes"
     }
+
     sendMergerTreeQuery(conditions, queryType.MERGER_TREE_Q1);
   };
 
@@ -318,9 +343,20 @@
         .attr("value", function(d){ return d.NowGroup; })
         .text(function(d) { return d.NowGroup; });  
       });
-    
+
     //}, 'json');
   };
+
+  var checkDisableGroups = function() {
+    // This function is used to prevent users from not entering a username
+    if (document.getElementById('mergerTreeUsername').value == '') {
+      document.getElementById("mergerTreeGroups").disabled=true;
+      displayErrorMessage('Username required');
+    } else {
+      document.getElementById("mergerTreeGroups").disabled=false;
+      displayErrorMessage('');
+    }
+  }
 
   var download = function() {
     mergerTree.download();
