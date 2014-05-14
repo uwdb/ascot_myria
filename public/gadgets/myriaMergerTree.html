@@ -33,14 +33,14 @@
         <div id="mergerTreeOptions">
           <div id="mergerTreeUserOptions">
             <label>Username </label>
-            <input id="mergerTreeUsername" onchange="checkDisableGroups()"></input>
+            <input id="mergerTreeUsername" onchange="checkDisableGroups()"></input> * Required
           </div>
-          <div id="mergerTreeMassRangeOptions">
+          <!--<div id="mergerTreeMassRangeOptions">
             <label>Mass Range </label>
             <input id="mergerTreeMassMin"></input>
             <label> to </label>
             <input id="mergerTreeMassMax"></input>
-          </div>
+          </div>-->
           <label>Group </label>
           <select id="mergerTreeGroups" style = "width: 70px;" onchange="tryFormAndSendMergerTreeQuery();" onfocus="this.selectedIndex = -1;">
           </select>
@@ -166,8 +166,8 @@
   };
 
   var selectedGroup = -1;
-  var selectedMinMassRange = -1;
-  var selectedMinMassRange = -1;
+  // var selectedMinMassRange = -1;
+  // var selectedMinMassRange = -1;
   var mergerTree;
   var setUp = function() {
     // Hide MergerTreePanel
@@ -209,8 +209,8 @@
           //BRENDAN: we are now sending the query to compute the edges table
           var conditions = {
             group: selectedGroup,
-            minMassRange: selectedMinMassRange,
-            maxMassRange: selectedMaxMassRange,
+            // minMassRange: selectedMinMassRange,
+            // maxMassRange: selectedMaxMassRange,
             dataTable: "astro:cosmo50:cosmo50CompleteEdges",
             resultTable: username + ":cosmo50:cosmo50SelectedEdges"
           };
@@ -287,8 +287,8 @@
     showMergerTreePanel(false);
     selectedGroup = document.getElementById('mergerTreeGroups').value;
     username = document.getElementById('mergerTreeUsername').value;
-    selectedMinMassRange = document.getElementById('mergerTreeMassMin').value;
-    selectedMaxMassRange = document.getElementById('mergerTreeMassMax').value;
+    // selectedMinMassRange = document.getElementById('mergerTreeMassMin').value;
+    // selectedMaxMassRange = document.getElementById('mergerTreeMassMax').value;
 
     //console.log(selectedGroup);
     var intRegex = /^\d+$/;
@@ -299,8 +299,8 @@
     showLoadingIcon(true);
     var conditions = {
       group: selectedGroup,
-      minMassRange: selectedMinMassRange,
-      maxMassRange: selectedMaxMassRange,
+      // minMassRange: selectedMinMassRange,
+      // maxMassRange: selectedMaxMassRange,
       dataTable: "astro:cosmo50:cosmo50CompleteNodes",
       resultTable: username + ":cosmo50:cosmo50SelectedNodes"
     }
