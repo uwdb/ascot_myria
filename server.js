@@ -1,4 +1,4 @@
-// NPM dependencies
+  // NPM dependencies
 var express = require('express');
 var sharejs = require('./ShareJS').server;
 var faye = require('faye');
@@ -95,6 +95,12 @@ app.post('/dataSet/', function(req, res){
 });
 
 var request = require('request');
+//BRENDAN: this is where our server defines what to do when a post request is sent to it
+//with the url myria/mquery. This is where we actually query myria. Something to note
+//is that we are queries demo.myria because we use the parsing functionality to issue a
+//myriaL query instead of directly sending the json. The get requests defined below
+//use json directly and don't send requests to the demo. The req variable stores
+//the data we sent to the server (the table name and output names and so on)
 app.post('/myria/mquery', function(req, postResponse) {
   postResponse.header("Transfer-Encoding", "chunked");
   postResponse.header("Content-Type", "application/json");
@@ -110,6 +116,8 @@ app.post('/myria/mquery', function(req, postResponse) {
           language: "MyriaL"
         }
     },
+    //BRENDAN: the results the myria sends to server.js are now collected and sent
+    //to the callback function in our sendMergerTree() function
     function (error, response, body) {
         if (!error && response.statusCode == 201) {
             postResponse.write(body);
@@ -127,6 +135,7 @@ var trySending = function(postResponse) {
 
 };
 
+//BENDAN: here I think we are just checking that the query complete
 app.get('/myria/mquery', function(req, postResponse){
   console.log("/query/query-" + req.get('query', ''));
   var request = http.request({
@@ -154,6 +163,8 @@ app.get('/myria/mquery', function(req, postResponse){
   request.end();
 });
 
+//BRENDAN: here we are requesting the resultant data tables and not issue a query.
+//We are basically requesting a download
 app.get('/myria/mdata', function(req, postResponse){
   var request = http.request({
     hostname: "vega.cs.washington.edu",

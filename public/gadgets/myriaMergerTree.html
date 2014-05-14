@@ -201,9 +201,12 @@
     switch(queryTypeEnum) {
       case queryType.MERGER_TREE_Q1:
       $.get(MYRIA_MQUERY_URL, {query: queryId}, function(res) {
+        //BRENDAN: We are just checking that the query queryId finished on myria 
+        //We do have to loop on the res.status to make sure we get a result before continuing
         if (res.status != 'SUCCESS') {
           tryGetResult(queryId, queryTypeEnum);
         } else {
+          //BRENDAN: we are now sending the query to compute the edges table
           var conditions = {
             group: selectedGroup,
             minMassRange: selectedMinMassRange,
@@ -220,7 +223,7 @@
         if (res.status != 'SUCCESS') {
           tryGetResult(queryId, queryTypeEnum);
         } else {
-    // Then get the result.
+    //BRENDAN: Now we are geting the resulting nodes table from myria
     $.get(MYRIA_MDATA_URL, {user: username, program: 'cosmo50', table: 'cosmo50SelectedNodes'}, getSecondMergerTreeQueryResult, 'json');
     }
     });
@@ -236,6 +239,7 @@
   };
 
   var getSecondMergerTreeQueryResult = function(data) {
+    //BRENDAN: after getting the nodes table we are now getting the computed edges table
     username = document.getElementById('mergerTreeUsername').value;
     $.get(MYRIA_MDATA_URL, {user: username, program: 'cosmo50', table: 'cosmo50SelectedEdges'}, function(res) {
       displayMergerTreeResult(data,res);
@@ -259,6 +263,10 @@
   mergerTree = new displayMergerTree(data2, data1, selectedGroup);
   };
 
+  //BRENDAN: This is the function that sends the query to myria. From what I understand,
+  //$post(url, data, callback) sends a request to the url along with the data
+  // to the server. In our case, the server is the server.js javascript file. So we have to
+  //look there to see what /myria/mquery actually calls  
   var sendMergerTreeQuery = function(conditions, queryType) {
     $.post(MYRIA_MQUERY_URL, conditions, function(res) {
     // Get the query id.
