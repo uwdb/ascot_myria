@@ -95,7 +95,7 @@ app.post('/dataSet/', function(req, res){
 });
 
 var request = require('request');
-//BRENDAN: this is where our server defines what to do when a post request is sent to it
+//This is where our server defines what to do when a post request is sent to it
 //with the url myria/mquery. This is where we actually query myria. Something to note
 //is that we are queries demo.myria because we use the parsing functionality to issue a
 //myriaL query instead of directly sending the json. The get requests defined below
@@ -116,10 +116,11 @@ app.post('/myria/mquery', function(req, postResponse) {
           language: "MyriaL"
         }
     },
-    //BRENDAN: the results the myria sends to server.js are now collected and sent
+    //The results the myria sends to server.js are now collected and sent
     //to the callback function in our sendMergerTree() function
     function (error, response, body) {
         if (!error && response.statusCode == 201) {
+            console.log(body);
             postResponse.write(body);
             postResponse.end();
         } else {
@@ -135,7 +136,7 @@ var trySending = function(postResponse) {
 
 };
 
-//BENDAN: here I think we are just checking that the query complete
+// here I think we are just checking that the query complete
 app.get('/myria/mquery', function(req, postResponse){
   console.log("/query/query-" + req.get('query', ''));
   var request = http.request({
@@ -163,13 +164,13 @@ app.get('/myria/mquery', function(req, postResponse){
   request.end();
 });
 
-//BRENDAN: here we are requesting the resultant data tables and not issue a query.
+//Here we are requesting the resultant data tables and not issue a query.
 //We are basically requesting a download
 app.get('/myria/mdata', function(req, postResponse){
   var request = http.request({
     hostname: "vega.cs.washington.edu",
     port: 1776,
-    path: "/dataset/user-" + (req.param('user') || 'public') + "/program-" + (req.param('program') || 'adhoc') + "/relation-" + req.param('table') + '/data?format=json',
+    path: "/dataset/user-" + (req.param('resultTable') || 'public') + "/program-adhoc/relation-MassRangeGroups/data?format=json",
     method: "get",
     headers: {
       "Accept": "*/*"
@@ -189,6 +190,37 @@ app.get('/myria/mdata', function(req, postResponse){
     })
   });
   request.end();
+});
+
+// Sending a query to myria that request present day group ids within a given mass range
+app.post('/myria/mdata', function(req, postResponse) {
+  postResponse.header("Transfer-Encoding", "chunked");
+  postResponse.header("Content-Type", "application/json");
+  var queryString = 'T1 = scan(astro:cosmo50:snapshot512Hash);'
+                  + 'T2 = [from T1 emit grp as NowGroup, sum(mass) as massSum];'
+                  + 'T3 = [from T2 where massSum <= ' + req.param('maxRange') + ' and massSum >= ' + req.param('minRange') + ' emit NowGroup];'
+                  + 'store(T3, ' + (req.param('user') || 'public') + ':adhoc:MassRangeGroups);';
+      request({
+      "url":'https://demo.myria.cs.washington.edu/execute',
+      "method": "POST",
+      "rejectUnauthorized": false,
+      "form": {
+          query: queryString,
+          language: "MyriaL"
+        }
+    },
+
+    function (error, response, body) {
+        if (!error && response.statusCode == 201) {
+            postResponse.write(body);
+            postResponse.end();
+        } else {
+            console.log('Error: ' + error);
+            console.log('Status code' + response.statusCode);
+            postResponse.write({error: response.statusCode});
+        }
+    }
+  );
 });
 
 if (!module.parent) {

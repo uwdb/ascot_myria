@@ -25,6 +25,13 @@
     height: 70px;
     margin: 8px;
     }
+    #groupLoading {
+    background-image: url('../images/ascotButton/spinner.gif');
+    background-repeat: no-repeat;
+    height: 32px;
+    margin-left: 30px;
+    margin-top: 8px;
+    }
     </style>
   </head>
   <body>
@@ -35,19 +42,23 @@
             <label>Username </label>
             <input id="mergerTreeUsername" onchange="checkDisableGroups()"></input> * Required
           </div>
-          <!--<div id="mergerTreeMassRangeOptions">
+          <div id="mergerTreeMassRangeOptions">
             <label>Mass Range </label>
-            <input id="mergerTreeMassMin"></input>
+            <input id="mergerTreeMassMin" placeholder=""></input>
             <label> to </label>
-            <input id="mergerTreeMassMax"></input>
-          </div>-->
+            <input id="mergerTreeMassMax" placeholder=""></input>
+          </div>
+          <div id="generateGroupsSection" style="margin-top: 10px">
+            <button class="button" id="generateGroupsButton" onclick='generateGroups()'>Generate Groups</button>
+            <span id="error"></span>
+            <div id="groupLoading"></div>
+          </div>
           <label>Group </label>
-          <select id="mergerTreeGroups" style = "width: 70px;" onchange="tryFormAndSendMergerTreeQuery();" onfocus="this.selectedIndex = -1;">
+          <select id="mergerTreeGroups" title="Sorted by size, limitted to top few hundred" style = "width: 100px;" onchange="tryFormAndSendMergerTreeQuery();" onfocus="this.selectedIndex = -1;">
           </select>
           
           <!-- <input id="mergerTreeGroup" onkeydown="if (event.keyCode == 13) document.getElementById('mQueryButton').click()" style="margin:0px; padding:4px"></input>
           <button id="mQueryButton" onclick="tryFormAndSendMergerTreeQuery()" style="padding:4px;">Execute</button> -->
-          <span id="error"></span>
         </div>
         <div id="resultLoading"></div>
         <div id="mergerTreeResult">
@@ -160,21 +171,27 @@
   var MYRIA_MQUERY_URL = "/myria/mquery";
   var MYRIA_MDATA_URL = "/myria/mdata";
 
+  var MIN_MASS_RANGE = 0.00000001;
+  var MAX_MASS_RANGE = 0.01;
+
   var queryType = {
     MERGER_TREE_Q1: 1,
     MERGER_TREE_Q2: 2
   };
 
   var selectedGroup = -1;
-  // var selectedMinMassRange = -1;
-  // var selectedMinMassRange = -1;
+  var selectedMinMassRange = -1;
+  var selectedMinMassRange = -1;
   var mergerTree;
   var setUp = function() {
     // Hide MergerTreePanel
     showMergerTreePanel(false);
-    showLoadingIcon(false);
-    populateMergerTreeGroups();
+    showVizLoadingIcon(false);
+    showGroupLoadingIcon(false);
     document.getElementById("mergerTreeGroups").disabled=true;
+    document.getElementById("generateGroupsButton").disabled=true;
+    document.getElementById("mergerTreeMassMin").placeholder = MIN_MASS_RANGE;
+    document.getElementById("mergerTreeMassMax").placeholder = MAX_MASS_RANGE;
   };
 
   gadget.init = function(callback){
@@ -201,16 +218,14 @@
     switch(queryTypeEnum) {
       case queryType.MERGER_TREE_Q1:
       $.get(MYRIA_MQUERY_URL, {query: queryId}, function(res) {
-        //BRENDAN: We are just checking that the query queryId finished on myria 
-        //We do have to loop on the res.status to make sure we get a result before continuing
+        // We are just checking that the query queryId finished on myria 
+        // We do have to loop on the res.status to make sure we get a result before continuing
         if (res.status != 'SUCCESS') {
           tryGetResult(queryId, queryTypeEnum);
         } else {
-          //BRENDAN: we are now sending the query to compute the edges table
+          // We are now sending the query to compute the edges table
           var conditions = {
             group: selectedGroup,
-            // minMassRange: selectedMinMassRange,
-            // maxMassRange: selectedMaxMassRange,
             dataTable: "astro:cosmo50:cosmo50CompleteEdges",
             resultTable: username + ":cosmo50:cosmo50SelectedEdges"
           };
@@ -223,7 +238,7 @@
         if (res.status != 'SUCCESS') {
           tryGetResult(queryId, queryTypeEnum);
         } else {
-    //BRENDAN: Now we are geting the resulting nodes table from myria
+    // Now we are geting the resulting nodes table from myria
     $.get(MYRIA_MDATA_URL, {user: username, program: 'cosmo50', table: 'cosmo50SelectedNodes'}, getSecondMergerTreeQueryResult, 'json');
     }
     });
@@ -239,7 +254,7 @@
   };
 
   var getSecondMergerTreeQueryResult = function(data) {
-    //BRENDAN: after getting the nodes table we are now getting the computed edges table
+    // After getting the nodes table we are now getting the computed edges table
     username = document.getElementById('mergerTreeUsername').value;
     $.get(MYRIA_MDATA_URL, {user: username, program: 'cosmo50', table: 'cosmo50SelectedEdges'}, function(res) {
       displayMergerTreeResult(data,res);
@@ -247,7 +262,7 @@
   }
 
   var displayMergerTreeResult = function(data1, data2) {
-    showLoadingIcon(false);
+    showVizLoadingIcon(false);
     if (data1.length == 0 || data2.length == 0) {
       displayErrorMessage('No result for the selected group: ' + selectedGroup);
       return;
@@ -263,10 +278,10 @@
   mergerTree = new displayMergerTree(data2, data1, selectedGroup);
   };
 
-  //BRENDAN: This is the function that sends the query to myria. From what I understand,
-  //$post(url, data, callback) sends a request to the url along with the data
+  // This is the function that sends the query to myria. From what I understand,
+  // $post(url, data, callback) sends a request to the url along with the data
   // to the server. In our case, the server is the server.js javascript file. So we have to
-  //look there to see what /myria/mquery actually calls  
+  // look there to see what /myria/mquery actually calls  
   var sendMergerTreeQuery = function(conditions, queryType) {
     $.post(MYRIA_MQUERY_URL, conditions, function(res) {
     // Get the query id.
@@ -287,8 +302,6 @@
     showMergerTreePanel(false);
     selectedGroup = document.getElementById('mergerTreeGroups').value;
     username = document.getElementById('mergerTreeUsername').value;
-    // selectedMinMassRange = document.getElementById('mergerTreeMassMin').value;
-    // selectedMaxMassRange = document.getElementById('mergerTreeMassMax').value;
 
     //console.log(selectedGroup);
     var intRegex = /^\d+$/;
@@ -296,11 +309,9 @@
       displayErrorMessage('Invalid group number.');
       return;
     }
-    showLoadingIcon(true);
+    showVizLoadingIcon(true);
     var conditions = {
       group: selectedGroup,
-      // minMassRange: selectedMinMassRange,
-      // maxMassRange: selectedMaxMassRange,
       dataTable: "astro:cosmo50:cosmo50CompleteNodes",
       resultTable: username + ":cosmo50:cosmo50SelectedNodes"
     }
@@ -327,7 +338,7 @@
     }
   };
 
-  var showLoadingIcon = function(show) {
+  var showVizLoadingIcon = function(show) {
     var loadingIcon = document.getElementById('resultLoading');
     if (show) {
       loadingIcon.style.display = "";
@@ -336,32 +347,96 @@
     }
   };
 
-  var populateMergerTreeGroups = function() {
-    $.get(MYRIA_MDATA_URL, {user: 'astro', program: 'cosmo50', table: 'cosmo50PresentGroups'}, function(res) {
-        if (res.length == 0) {
-          displayErrorMessage('No table with your specified name');
-          return;
-        }
-        console.log(res.length);
-        res = res.slice(0,500);
-        d3.select("#mergerTreeGroups")
-        .selectAll("option")
-        .data(res)
-        .enter().append("option")
-        .attr("value", function(d){ return d.NowGroup; })
-        .text(function(d) { return d.NowGroup; });  
-      });
-
-    //}, 'json');
+  var showGroupLoadingIcon = function(show) {
+    var loadingIcon = document.getElementById('groupLoading');
+    if (show) {
+      loadingIcon.style.display = "";
+    } else {
+      loadingIcon.style.display = "none";
+    }
   };
+
+  var generateGroups = function() {
+    showGroupLoadingIcon(true);
+    
+    sendGroupIdQuery(function(queryId) {
+      console.log('GROUP QUERY FINISHED: queryId ' + queryId);
+      document.getElementById("mergerTreeGroups").innerHTML="";
+    });
+
+    setTimeout(function(){ populateMergerTreeGroups();}, 3000);
+  }
+
+  var populateMergerTreeGroups = function() {    
+    $.get(MYRIA_MDATA_URL, {user: 'public'}, function(res) {
+      showGroupLoadingIcon(false);
+      document.getElementById("mergerTreeGroups").disabled=false;
+      
+      if (res.length == 0) {
+        displayErrorMessage('No groups in selected mass range');
+        return;
+      } else {
+        displayErrorMessage('');
+      }
+
+      console.log(res);
+      console.log(res.length);
+      
+      // Browser tends to crash with too large of a drop down
+      res.sort(sortNumber);
+      res = res.slice(0,100);
+      
+      d3.select("#mergerTreeGroups")
+      .selectAll("option")
+      .data(res)
+      .enter().append("option")
+      .attr("value", function(d){ return d.NowGroup; })
+      .text(function(d) { return d.NowGroup; });  
+    }); 
+  };
+
+  // For drop down results sorting
+  function sortNumber(a,b) {
+    return a.NowGroup - b.NowGroup;
+  }
+
+  var sendGroupIdQuery = function(callback) {
+    selectedMinMassRange = document.getElementById('mergerTreeMassMin').value;
+    selectedMaxMassRange = document.getElementById('mergerTreeMassMax').value;
+
+    if (selectedMinMassRange == '') {
+      selectedMinMassRange = MIN_MASS_RANGE.toFixed(20);
+    } 
+    if (selectedMaxMassRange == '') {
+      selectedMaxMassRange = MAX_MASS_RANGE.toFixed(20);
+    }
+
+    var conditions = {
+      user: "public",
+      minRange: selectedMinMassRange,
+      maxRange: selectedMaxMassRange
+    };
+    console.log(conditions);
+
+    $.post(MYRIA_MDATA_URL, conditions, function(res) {
+      // Get the query id.
+      if (res.error) {
+        displayErrorMessage('Something went wrong, please try again.');
+        return;
+      }
+      var queryId = res.queryId;
+      console.log('GROUP QUERY POST: queryId ' + queryId);
+      callback(queryId);
+    }, 'json');
+  }
 
   var checkDisableGroups = function() {
     // This function is used to prevent users from not entering a username
     if (document.getElementById('mergerTreeUsername').value == '') {
-      document.getElementById("mergerTreeGroups").disabled=true;
+      document.getElementById("generateGroupsButton").disabled=true;
       displayErrorMessage('Username required');
     } else {
-      document.getElementById("mergerTreeGroups").disabled=false;
+      document.getElementById("generateGroupsButton").disabled=false;
       displayErrorMessage('');
     }
   }
