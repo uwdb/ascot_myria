@@ -1,5 +1,4 @@
-function displayMergerTree(raw_links, raw_nodes, selectedGroup) {
-
+function displayMergerTree(raw_links, raw_nodes, raw_times, selectedGroup) {
 //var doc = document.documentElement;
 //var clientWidth = Math.min(doc.clientWidth-50, 1600);
 //var clientHeight = doc.clientHeight;
@@ -165,7 +164,6 @@ var yAxisMass = d3.svg.axis().scale(y).orient("left").ticks(5);
 
 var xAxisParticle = d3.svg.axis().scale(xParticle).orient("bottom").tickFormat(function(d) { return kformat(Math.pow(10,d)); });
 var yAxisParticle = d3.svg.axis().scale(yParticle).orient("left").ticks(5);
-
 //areas- based on respective domains
 var area = d3.svg.area()
     .interpolate("monotone")
@@ -178,7 +176,6 @@ var areaParticle = d3.svg.area()
     .x(function(d) { return xParticle(d.x); })
     .y0(xHeight)
     .y1(function(d) { return yParticle(d.y); });
-    
 //initialize brushes
 var brushMass = d3.svg.brush()
     .x(x)
@@ -204,8 +201,8 @@ var dataBinMassAllHalos = [];
 var dataBinParticleAllHalos = [];
 
 //******************************LOAD DATA
-d3.csv("./../d3/times.csv", function(error1, raw_times) {
-d3.csv("./../d3/similarities.csv", function(error3, raw_sims) {
+//d3.csv("./../d3/times.csv", function(error1, raw_times) {
+//d3.csv("./../d3/similarities.csv", function(error2, raw_sims) {
     //CREATE DATA DEPENDENT VARIABLES
     var maxSharedParticle = 0, minSharedParticle;
     var haloMassValuesLog = [], haloParticleValuesLog = [];
@@ -214,7 +211,6 @@ d3.csv("./../d3/similarities.csv", function(error3, raw_sims) {
     minSharedParticle = raw_links[0].SharedParticlesCount;
     //LUMINOSITYminLum = raw_nodes[0].lum;
     //LUMINOSITYmaxLum = raw_nodes[0].lum;
-
     timeMap = d3.nest().key(function(d) { return d.db }).map(raw_times, d3.map);
 
     raw_links.forEach(function(d) {
@@ -483,8 +479,8 @@ d3.csv("./../d3/similarities.csv", function(error3, raw_sims) {
     //**SIM populateSlider();
     update(root);
     //start at zoomed out state
-});
-});
+//});
+//});
 
 function update(source) {
     //compute the new tree layout.
