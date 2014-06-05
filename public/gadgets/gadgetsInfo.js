@@ -91,11 +91,18 @@ var gadgets = {
   //   author: "",
   //   version: "0.1"
   // },
-  myriaMergerTree: {
+  myriaMergerTreePrecomputed: {
+    name: "Myria Merger Tree (Precomputed)",
+    fileName: "myriaMergerTreePrecomputed.html",
+    description: "Provide visualization of merger trees",
+    author: "UWDB",
+    version: "0.1"
+  },
+  myriaMergerTreeFullCompute: {
     name: "Myria Merger Tree",
-    fileName: "myriaMergerTree.html",
-    description: "Provide visualization of merger tree.",
-    author: "Lee Lee Choo - chooleelee@gmail.com",
+    fileName: "myriaMergerTreeFullCompute.html",
+    description: "Provide visualization of merger trees",
+    author: "UWDB",
     version: "0.1"
   },
   /*

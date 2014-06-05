@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Myria Merger Tree</title>
+    <!-- ASCOT Basic Style Sheets -->
+    <link href="/css/reset.css" rel="stylesheet" type="text/css">
+    <link href="/css/text.css" rel="stylesheet" type="text/css">
+    <link href="/css/widgets.css" rel="stylesheet" type="text/css">
+    <link href="/css/mergerTreeStyle.css" rel="stylesheet" type="text/css">
+    <style type="text/css">
+    #mergerTreeResult {
+    /*height: 1300px;
+    width: 960px;*/
+    display:block;
+    }
+    #error {
+    color: red;
+    margin: 8px;
+    }
+    #resultLoading {
+    background-image: url('../images/ajax-loader.gif');
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 70px;
+    margin: 8px;
+    }
+    #groupLoading {
+    background-image: url('../images/ascotButton/spinner.gif');
+    background-repeat: no-repeat;
+    height: 32px;
+    margin-left: 30px;
+    margin-top: 8px;
+    }
+    </style>
+  </head>
+  <body>
+    <div id="content">
+      <div id="mergerTree">
+        <div id="mergerTreeOptions">
+          <div id="mergerTreeUserOptions">
+            <label>Username </label>
+            <input id="mergerTreeUsername" onchange="checkDisableGroups()"></input> * Required
+          </div>
+          <div id="mergerTreeMassRangeOptions">
+            <label>Mass Range </label>
+            <input id="mergerTreeMassMin" placeholder=""></input>
+            <label> to </label>
+            <input id="mergerTreeMassMax" placeholder=""></input>
+          </div>
+          <div id="generateGroupsSection" style="margin-top: 10px">
+            <button class="button" id="generateGroupsButton" onclick='sendGroupIdQuery()'>Generate Groups</button>
+            <span id="error"></span>
+            <div id="groupLoading"></div>
+          </div>
+          <label>Group </label>
+          <select id="mergerTreeGroups" title="Sorted by size, limitted to top few hundred" style = "width: 100px;" onchange="tryFormAndSendMergerTreeQuery();" onfocus="this.selectedIndex = -1;">
+          </select>
+          
+          <!-- <input id="mergerTreeGroup" onkeydown="if (event.keyCode == 13) document.getElementById('mQueryButton').click()" style="margin:0px; padding:4px"></input>
+          <button id="mQueryButton" onclick="tryFormAndSendMergerTreeQuery()" style="padding:4px;">Execute</button> -->
+        </div>
+        <div id="resultLoading"></div>
+        <div id="mergerTreeResult">
+          <!-- <div class="subsecHeader">Result</div> -->
+          <!-- <div id="resultLoading"></div> -->
+          <table style="border-spacing: 0.5px;">
+            <!-- <tr>
+              <td>
+                <div id="sliderContainer">
+                  <div id="similarHalo">Similar Halos</div>
+                  <div id="sliderContent"></div>
+                </div>
+              </td>
+            </tr> -->
+            <tr>
+              <td>
+                <table id="toptable" style="margin:3px 0px;">
+                  <tr>
+                    <td >
+                      <div id="topContainer" style="display:inline;float:left">
+                        <button class="button" id="resetButton" onclick='resetTree()'>Reset View</button>
+                        <button class="button" id="downloadButton" onclick='download()'>Download</button>
+                        <form style="display:inline"><input class="checked" id="checkedRemoveGraphs" type="checkbox" onclick="toggleGraphs()"> Remove Graphs </form>
+                        <form style="display:inline"><input class="checked" id="checkedRemoveTooltips" type="checkbox" onclick="toggleTooltips()"> Remove Tooltips </form>
+                        <!-- <form style="display:inline"><input class="checked" id="checkedLuminosity" type="checkbox" onclick="toggleLuminosity()"> Luminosity View </form> -->
+                      </div>
+                    </td>
+                    <td >
+                      <div id="nodeLegend" style="display:inline; float:right; margin-bottom:-7px;">
+                        <img src="./../images/mergerTree/Legend.jpg"  style="float:right;" alt="Node Legend" width="45%" height="20%">
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div id="svgContent" style="display:inline-block;"></div>
+              </td>
+            </tr>
+            <tr>
+              <td id="test">
+                <div id="panelContent" style="display:inline-block">
+                  <table id="graphLabelTable">
+                    <tr style="padding: 0px;">
+                      <td width="33%">
+                        <div id="legend" style="text-align:left; padding: 0px;"></div>
+                      </td>
+                      <td width="33%">
+                        <div style="text-align:center; margin: -5px auto auto;" id="textInfo">Drag your mouse over the graphs below to highlight specific halos</div>
+                        <div style="text-align:center; margin: -5px auto auto;" id="textInfo">or hold the shift key and click a halo to highlight a path</div>
+                      </td>
+                      <td width="33%">
+                        <div id="haloTextSelected" style="text-align:right; margin: -5px auto auto;"><b>0 Halos Selected</b></div>
+                      </td>
+                    </tr>
+                  </table>
+                  <table id="table">
+                    <tr>
+                      <td>
+                        <table id="massInformation">
+                          <tr>
+                            <td width="70%"> <div id="massPanel"> </div> </td>
+                            <td width="30%">
+                              <div id="massTextBoxes" style = "width:125px; text-align:right;">
+                                <form onkeypress="return event.keyCode != 13;" >min: <input id="textboxMinMass" type="text" value="0"/> </form>
+                                <form onkeypress="return event.keyCode != 13;" >max: <input id="textboxMaxMass" type="text" value="0"/> </form>
+                                <div id="buttonMass"><button class="button">Update Interval</button> </div>
+                              </div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                      <td>
+                        <table id="particleInformation">
+                          <tr>
+                            <td width="70%"><div id="particlePanel"> </div></td>
+                            <td width="30%">
+                              <div id="particleTextBoxes" style="width:125px; text-align:right;">
+                                <form onkeypress="return event.keyCode != 13;">min: <input id="textboxMinParticle" type="text" value="0"/> </form>
+                                <form onkeypress="return event.keyCode != 13;">max: <input id="textboxMaxParticle" type="text" value="0" /> </form>
+                                <div id="buttonParticle"><button class="button">Update Interval</button></div>
+                              </div>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="http://code.jquery.com/jquery-1.8.1.min.js" type="text/javascript"></script>
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <script src="/util.js" type="text/javascript"></script>
+  <script type="text/javascript" src="/wcs.js"></script>
+  <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+  <script src="../d3/tree_thumbnails.js"></script>
+  <script src="../d3/interaction_collapse.js"></script>
+  <script type="text/javascript">
+
+  var MYRIA_MQUERY_URL = "/myria/mquery"
+  var MYRIA_MQUERYGRP_URL = "/myria/mquerygrp";
+  var MYRIA_MQUERYMASS_URL = "/myria/mquerymass";
+  var MYRIA_MDATA_URL = "/myria/mdata";
+
+  var MIN_MASS_RANGE = 0.00000001;
+  var MAX_MASS_RANGE = 0.01;
+
+  var queryType = {
+    MERGER_TREE_Q1: 1,
+    MERGER_TREE_Q2: 2,
+    MERGER_MASS_Q1: 3
+  };
+
+  var selectedGroup = -1;
+  var selectedMinMassRange = -1;
+  var selectedMinMassRange = -1;
+  var mergerTree;
+  var setUp = function() {
+    // Hide MergerTreePanel
+    showMergerTreePanel(false);
+    showVizLoadingIcon(false);
+    showGroupLoadingIcon(false);
+    document.getElementById("mergerTreeGroups").disabled=true;
+    document.getElementById("generateGroupsButton").disabled=true;
+    document.getElementById("mergerTreeMassMin").placeholder = MIN_MASS_RANGE;
+    document.getElementById("mergerTreeMassMax").placeholder = MAX_MASS_RANGE;
+  };
+
+  gadget.init = function(callback){
+    callback();
+    setUp();
+  }
+
+  var showMergerTreePanel = function(show) {
+    var panelElements = document.getElementsByClassName('mergerTreePanel');
+    if (show) {
+      for (var i = 0; i < panelElements.length; i++) {
+        panelElements[i].style.display = "";
+      }
+    } else {
+      for (var i = 0; i < panelElements.length; i++) {
+        panelElements[i].style.display = "none";
+      }
+    }
+  };
+
+  var tryGetResult = function(queryId, queryTypeEnum) {
+    // Keep enquiring for the query status until the status is success.
+    username = document.getElementById('mergerTreeUsername').value;
+    switch(queryTypeEnum) {
+      case queryType.MERGER_TREE_Q1:
+      $.get(MYRIA_MQUERY_URL, {query: queryId}, function(res) {
+        // We are just checking that the query queryId finished on myria 
+        // We do have to loop on the res.status to make sure we get a result before continuing
+        if (res.status != 'SUCCESS') {
+          tryGetResult(queryId, queryTypeEnum);
+        } else {
+          // We are now sending the query to compute the edges table
+          var conditions = {
+            group: selectedGroup,
+            dataTable: "astro:cosmo50:cosmo50CompleteEdges",
+            resultTable: username + ":cosmo50:cosmo50SelectedEdges"
+          };
+          sendMergerTreeQuery(conditions, queryType.MERGER_TREE_Q2);
+        }
+      });
+      break;
+      case queryType.MERGER_TREE_Q2:
+      $.get(MYRIA_MQUERY_URL, {query: queryId}, function(res) {
+        if (res.status != 'SUCCESS') {
+          tryGetResult(queryId, queryTypeEnum);
+        } else {
+          // Now we are geting the resulting nodes table from myria
+          $.get(MYRIA_MDATA_URL, {user: username, program: 'cosmo50', table: 'cosmo50SelectedNodes'}, getSecondMergerTreeQueryResult, 'json');
+          }
+      });
+      break;
+      case queryType.MERGER_MASS_Q1:
+      $.get(MYRIA_MQUERY_URL, {query: queryId}, function(res) {
+        if (res.status != 'SUCCESS') {
+          tryGetResult(queryId, queryTypeEnum);
+        } else {
+          console.log('GROUP QUERY FINISHED: queryId ' + queryId);
+          document.getElementById("mergerTreeGroups").innerHTML="";
+          populateMergerTreeGroups();
+        }
+      });
+      default:
+      displayErrorMessage('Invalid query type.');
+    }
+  };
+
+  var displayErrorMessage = function(message) {
+    var errorSection = document.getElementById('error');
+    errorSection.innerHTML = message;
+  };
+
+  var getSecondMergerTreeQueryResult = function(data) {
+    // After getting the nodes table we are now getting the computed edges table
+    username = document.getElementById('mergerTreeUsername').value;
+    $.get(MYRIA_MDATA_URL, {user: username, program: 'cosmo50', table: 'cosmo50SelectedEdges'}, function(res) {
+      displayMergerTreeResult(data,res);
+    }, 'json');
+  }
+
+  var displayMergerTreeResult = function(data1, data2) {
+    var raw_times = d3.csv.parse("db,step,time,z\n1,512,13.7,0\n2,504,13.48,0.02\n3,480,12.84,0.07\n4,466,12.47,0.1\n5,456,12.2,0.12\n6,455,12.17,0.13\n7,432,11.56,0.18\n8,408,10.92,0.24\n9,406,10.86,0.25\n10,384,10.27,0.33\n11,336,8.99,0.47\n12,328,8.78,0.5\n13,312,8.35,0.56\n14,288,7.71,0.67\n15,264,7.06,0.78\n16,240,6.42,0.92\n17,226,6.05,1\n18,216,5.78,1.08\n19,192,5.14,1.26\n20,168,4.49,1.5\n21,144,3.85,1.77\n22,128,3.42,2\n23,96,2.57,2.66\n24,84,2.25,3\n25,72,1.93,3.45\n26,48,1.28,5\n27,24,0.64,8.25");
+    console.log(raw_times);
+    showVizLoadingIcon(false);
+    if (data1.length == 0 || data2.length == 0) {
+      displayErrorMessage('No result for the selected group: ' + selectedGroup);
+      return;
+    }
+    showMergerTreePanel(true);
+    data2.sort(function(obj1, obj2) {
+      return obj1.CurrentTime - obj2.CurrentTime});
+    data1.sort(function(obj1, obj2) {
+      return obj1.TimeStep - obj2.TimeStep;
+    });
+    //displayMergerTree is in d3/interaction_collapse.js
+    mergerTree = new displayMergerTree(data2, data1, raw_times, selectedGroup);
+    };
+
+  // This is the function that sends the query to myria. From what I understand,
+  // $post(url, data, callback) sends a request to the url along with the data
+  // to the server. In our case, the server is the server.js javascript file. So we have to
+  // look there to see what /myria/mquery actually calls  
+  var sendMergerTreeQuery = function(conditions, queryType) {
+    $.post(MYRIA_MQUERYGRP_URL, conditions, function(res) {
+    // Get the query id.
+    if (res.error) {
+      displayErrorMessage('Something went wrong getting grp, please try again.');
+      return;
+    }
+    var queryId = res.queryId;
+    console.log('GRP QUERY POST: queryId ' + queryId);
+
+    tryGetResult(queryId, queryType);
+    }, 'json');
+  }
+
+  var tryFormAndSendMergerTreeQuery = function() {
+    displayErrorMessage('');
+    clearPreviousMergerTreeDisplay();
+    showMergerTreePanel(false);
+    selectedGroup = document.getElementById('mergerTreeGroups').value;
+    username = document.getElementById('mergerTreeUsername').value;
+
+    //console.log(selectedGroup);
+    var intRegex = /^\d+$/;
+    if (!intRegex.test(selectedGroup)) {
+      displayErrorMessage('Invalid group number.');
+      return;
+    }
+    showVizLoadingIcon(true);
+    var conditions = {
+      group: selectedGroup,
+      dataTable: "astro:cosmo50:cosmo50CompleteNodes",
+      resultTable: username + ":cosmo50:cosmo50SelectedNodes"
+    }
+
+    sendMergerTreeQuery(conditions, queryType.MERGER_TREE_Q1);
+  };
+
+  var clearPreviousMergerTreeDisplay = function() {
+    var previousContent = document.getElementById("svgContent");
+    while (previousContent.firstChild) {
+      previousContent.removeChild(previousContent.firstChild);
+    }
+    var massPanelPrevContent = document.getElementById("massPanel");
+    var particlePanelPrevContent = document.getElementById("particlePanel");
+    var legendPrevContent = document.getElementById("legend");
+    while (massPanelPrevContent.firstChild) {
+        massPanelPrevContent.removeChild(massPanelPrevContent.firstChild)
+    }
+    while (particlePanelPrevContent.firstChild) {
+        particlePanelPrevContent.removeChild(particlePanelPrevContent.firstChild)
+    }
+    while (legendPrevContent.firstChild) {
+        legendPrevContent.removeChild(legendPrevContent.firstChild)
+    }
+  };
+
+  var showVizLoadingIcon = function(show) {
+    var loadingIcon = document.getElementById('resultLoading');
+    if (show) {
+      loadingIcon.style.display = "";
+    } else {
+      loadingIcon.style.display = "none";
+    }
+  };
+
+  var showGroupLoadingIcon = function(show) {
+    var loadingIcon = document.getElementById('groupLoading');
+    if (show) {
+      loadingIcon.style.display = "";
+    } else {
+      loadingIcon.style.display = "none";
+    }
+  };
+
+  var populateMergerTreeGroups = function() {    
+    $.get(MYRIA_MDATA_URL, {user: 'public', program: 'adhoc', table: 'MassRangeGroups'}, function(res) {
+      showGroupLoadingIcon(false);
+      document.getElementById("mergerTreeGroups").disabled=false;
+      
+      if (res.length == 0) {
+        displayErrorMessage('No groups in selected mass range');
+        return;
+      } else {
+        displayErrorMessage('');
+      }
+      console.log(res.length);
+      
+      // Browser tends to crash with too large of a drop down
+      res.sort(sortNumber);
+      res = res.slice(0,100);
+      
+      d3.select("#mergerTreeGroups")
+      .selectAll("option")
+      .data(res)
+      .enter().append("option")
+      .attr("value", function(d){ return d.NowGroup; })
+      .text(function(d) { return d.NowGroup; });  
+    }); 
+  };
+
+  // For drop down results sorting
+  function sortNumber(a,b) {
+    return a.NowGroup - b.NowGroup;
+  }
+
+  var sendGroupIdQuery = function() {
+    showGroupLoadingIcon(true);
+    console.log("in sendGroupIdQuery");
+    selectedMinMassRange = document.getElementById('mergerTreeMassMin').value;
+    selectedMaxMassRange = document.getElementById('mergerTreeMassMax').value;
+
+    if (selectedMinMassRange == '') {
+      selectedMinMassRange = MIN_MASS_RANGE.toFixed(20);
+    } 
+    if (selectedMaxMassRange == '') {
+      selectedMaxMassRange = MAX_MASS_RANGE.toFixed(20);
+    }
+
+    var conditions = {
+      user: "public",
+      minRange: selectedMinMassRange,
+      maxRange: selectedMaxMassRange
+    };
+    console.log("Conditions", conditions);
+
+    $.post(MYRIA_MQUERYMASS_URL, conditions, function(res) {
+      // Get the query id.
+      if (res.error) {
+        displayErrorMessage('Something went wrong getting mass, please try again.');
+        return;
+      }
+      var queryId = res.queryId;
+      console.log('MASS QUERY POST: queryId ' + queryId);
+      tryGetResult(queryId, queryType.MERGER_MASS_Q1);
+    }, 'json');
+  }
+
+  var checkDisableGroups = function() {
+    // This function is used to prevent users from not entering a username
+    if (document.getElementById('mergerTreeUsername').value == '') {
+      document.getElementById("generateGroupsButton").disabled=true;
+      displayErrorMessage('Username required');
+    } else {
+      document.getElementById("generateGroupsButton").disabled=false;
+      displayErrorMessage('');
+    }
+  }
+
+  var download = function() {
+    mergerTree.download();
+  }
+
+  var resetTree = function() {
+    mergerTree.resetTree();
+  }
+
+  var toggleGraphs = function() {
+    mergerTree.toggleGraphs();
+  }
+
+  var toggleTooltips = function() {
+    mergerTree.toggleTooltips();
+  }
+</script>
+</html>
