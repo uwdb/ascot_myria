@@ -44,9 +44,7 @@
           </div>
           <div id="mergerTreeMassRangeOptions">
             <label>Mass Range </label>
-            <input id="mergerTreeMassMin" placeholder=""></input>
-            <label> to </label>
-            <input id="mergerTreeMassMax" placeholder=""></input>
+            <select id="massSelection" onchange="rangeSelectChange()" style = "width: 240px;"></select>
           </div>
           <div id="generateGroupsSection" style="margin-top: 10px">
             <button class="button" id="generateGroupsButton" onclick='sendGroupIdQuery()'>Generate Groups</button>
@@ -171,9 +169,6 @@
   var MYRIA_MQUERYMASS_URL = "/myria/mquerymass";
   var MYRIA_MDATA_URL = "/myria/mdata";
 
-  var MIN_MASS_RANGE = 0.00000001;
-  var MAX_MASS_RANGE = 0.01;
-
   var queryType = {
     MERGER_TREE_Q1: 1,
     MERGER_TREE_Q2: 2,
@@ -181,8 +176,6 @@
   };
 
   var selectedGroup = -1;
-  var selectedMinMassRange = -1;
-  var selectedMinMassRange = -1;
   var mergerTree;
   var setUp = function() {
     // Hide MergerTreePanel
@@ -191,8 +184,7 @@
     showGroupLoadingIcon(false);
     document.getElementById("mergerTreeGroups").disabled=true;
     document.getElementById("generateGroupsButton").disabled=true;
-    document.getElementById("mergerTreeMassMin").placeholder = MIN_MASS_RANGE;
-    document.getElementById("mergerTreeMassMax").placeholder = MAX_MASS_RANGE;
+    populateMassRangeDropdown();
   };
 
   gadget.init = function(callback){
@@ -250,10 +242,10 @@
           tryGetResult(queryId, queryTypeEnum);
         } else {
           console.log('GROUP QUERY FINISHED: queryId ' + queryId);
-          document.getElementById("mergerTreeGroups").innerHTML="";
           populateMergerTreeGroups();
         }
       });
+      break;
       default:
       displayErrorMessage('Invalid query type.');
     }
@@ -382,9 +374,9 @@
       console.log(res.length);
       
       // Browser tends to crash with too large of a drop down
-      res.sort(sortNumber);
-      res = res.slice(0,100);
-      
+      res.sort(sortNumber); // Order from smallest to largest
+      res = res.slice(0,500);
+
       d3.select("#mergerTreeGroups")
       .selectAll("option")
       .data(res)
@@ -400,17 +392,18 @@
   }
 
   var sendGroupIdQuery = function() {
+    if (document.getElementById('mergerTreeUsername').value == '') {
+      return;
+    }
+
     showGroupLoadingIcon(true);
     console.log("in sendGroupIdQuery");
-    selectedMinMassRange = document.getElementById('mergerTreeMassMin').value;
-    selectedMaxMassRange = document.getElementById('mergerTreeMassMax').value;
+    massRangeTuple = document.getElementById('massSelection').value;
+    massRangeTuple = massRangeTuple.split(","); // Tuple is in string form, we split and next parse to int
 
-    if (selectedMinMassRange == '') {
-      selectedMinMassRange = MIN_MASS_RANGE.toFixed(20);
-    } 
-    if (selectedMaxMassRange == '') {
-      selectedMaxMassRange = MAX_MASS_RANGE.toFixed(20);
-    }
+    var selectedMinMassRange = Number(massRangeTuple[0]).toFixed(20); // toFixed removes scientific notation
+    var selectedMaxMassRange = Number(massRangeTuple[1]).toFixed(20);
+    console.log("Selected Mass Range: " + selectedMinMassRange +  " -> " +  selectedMaxMassRange);
 
     var conditions = {
       user: "public",
@@ -439,6 +432,35 @@
     } else {
       document.getElementById("generateGroupsButton").disabled=false;
       displayErrorMessage('');
+    }
+  }
+
+  var rangeSelectChange = function() {
+    document.getElementById("mergerTreeGroups").innerHTML="";
+  }
+
+  var populateMassRangeDropdown = function() {
+    var massRanges = ["5e9 to 1e10   (Dwarf Galaxies)",
+                      "1e10 to 1.5e10",
+                      "1.5e10 to 2e10",
+                      "2e10 to 3e10",
+                      "3e10 to 5e10",
+                      "5e10 to 1e11",
+                      "1e11 to 2.5e11",
+                      "2.5e11 to 5e11",
+                      "5e11 to 5e12   (ex. Milky Way)",
+                      "5e12 to 1e13"
+                      ];
+    var select = document.getElementById("massSelection");
+
+    // Parses out each item in the above array and creates
+    // an elmement in the mass range selection input for that range
+    for (var i = 0; i < massRanges.length; i++) {
+      var element = document.createElement("option");
+      element.textContent = massRanges[i];
+      massRangeTuple = massRanges[i].split(" to ");
+      element.value = [massRangeTuple[0], massRangeTuple[1].split(" ")[0]]; // Gets just the number
+      select.appendChild(element);
     }
   }
 

@@ -1,3 +1,4 @@
+
   // NPM dependencies
 var express = require('express');
 var sharejs = require('./ShareJS').server;
@@ -136,7 +137,7 @@ app.post('/myria/mquerymass', function(req, postResponse) {
   postResponse.header("Transfer-Encoding", "chunked");
   postResponse.header("Content-Type", "application/json");
   var queryString = 'T1 = scan(astro:cosmo50:snapshot512Hash);'
-                  + 'T2 = [from T1 emit grp as NowGroup, sum(mass) as massSum];'
+                  + 'T2 = [from T1 emit grp as NowGroup, 18479300000000000.0*sum(mass) as massSum];'
                   + 'T3 = [from T2 where massSum <= ' + req.param('maxRange') + ' and massSum >= ' + req.param('minRange') + ' emit NowGroup];'
                   + 'store(T3, ' + (req.param('user') || 'public') + ':adhoc:MassRangeGroups);';
       request({

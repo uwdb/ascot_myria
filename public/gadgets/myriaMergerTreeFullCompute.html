@@ -255,6 +255,7 @@
         }
       });
       default:
+      break;
       displayErrorMessage('Invalid query type.');
     }
   };
@@ -400,6 +401,10 @@
   }
 
   var sendGroupIdQuery = function() {
+    if (document.getElementById('mergerTreeUsername').value == '') {
+      return;
+    }
+
     showGroupLoadingIcon(true);
     console.log("in sendGroupIdQuery");
     selectedMinMassRange = document.getElementById('mergerTreeMassMin').value;
@@ -434,6 +439,7 @@
   var checkDisableGroups = function() {
     // This function is used to prevent users from not entering a username
     if (document.getElementById('mergerTreeUsername').value == '') {
+      document.getElementById("mergerTreeGroups").innerHTML="";
       document.getElementById("generateGroupsButton").disabled=true;
       displayErrorMessage('Username required');
     } else {
