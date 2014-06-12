@@ -176,16 +176,14 @@ app.post('/myria/mcompute', function(req, postResponse) {
     request({
       "url":'http://rest.myria.cs.washington.edu:1776/query',
       "method": "POST",
-      "Content-Type": "application/json",
-      "rejectUnauthorized": false,
-      "form": queryJSON
+      "json": queryJSON
     },
 
     function (error, response, body) {
-      console.log("ERROR", error);
-      console.log("BODY", body);
-        if (!error && response.statusCode == 201) {
-            postResponse.write(body);
+        console.log("ERROR", error);
+        console.log("BODY", body);
+        if (!error && response.statusCode == 202) {
+            postResponse.write(JSON.stringify(body));
             postResponse.end();
         } else {
             console.log('Error mquerymass: ' + error);

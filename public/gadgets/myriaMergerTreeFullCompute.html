@@ -330,7 +330,7 @@
 
     computeMergerTrees(selectedGroup, username);
 
-    /*//console.log(selectedGroup);
+    //console.log(selectedGroup);
     var intRegex = /^\d+$/;
     if (!intRegex.test(selectedGroup)) {
       displayErrorMessage('Invalid group number.');
@@ -339,11 +339,11 @@
     showVizLoadingIcon(true);
     var conditions = {
       group: selectedGroup,
-      dataTable: "astro:cosmo50:Cosmo50FinalEdges",
-      resultTable: username + ":cosmo50:cosmo50FinalEdgesResults"
+      dataTable: "astro:cosmo50:cosmo50CompleteNodes",
+      resultTable: username + ":cosmo50:cosmo50SelectedNodes"
     }
 
-    sendMergerTreeQuery(conditions, queryType.MERGER_TREE_Q1);*/
+    sendMergerTreeQuery(conditions, queryType.MERGER_TREE_Q1);
   };
 
   var computeMergerTrees = function(selectedGroup, username) {
@@ -373,6 +373,7 @@
     }
 
     $.post(MYRIA_MCOMPUTE_URL, conditions, function(res) {
+      console.log("Got here");
       if (res.error) {
         displayErrorMessage('Something went wrong computing tables, please try again.');
         return;
