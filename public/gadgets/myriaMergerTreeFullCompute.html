@@ -170,14 +170,16 @@
   var MYRIA_MQUERYGRP_URL = "/myria/mquerygrp";
   var MYRIA_MQUERYMASS_URL = "/myria/mquerymass";
   var MYRIA_MDATA_URL = "/myria/mdata";
+  var MYRIA_MCOMPUTE_URL = "/myria/mcompute";
 
-  var MIN_MASS_RANGE = 0.00000001;
-  var MAX_MASS_RANGE = 0.01;
+  var MIN_MASS_RANGE = 50000000000.0;
+  var MAX_MASS_RANGE = 10000000000000.0;
 
   var queryType = {
     MERGER_TREE_Q1: 1,
     MERGER_TREE_Q2: 2,
-    MERGER_MASS_Q1: 3
+    MERGER_MASS_Q1: 3,
+    MERGER_COMPUTE: 4
   };
 
   var selectedGroup = -1;
@@ -254,8 +256,18 @@
           populateMergerTreeGroups();
         }
       });
-      default:
       break;
+      case queryType.MERGER_COMPUTE:
+      $.get(MYRIA_MQUERY_URL, {query: queryId}, function(res) {
+        if (res.status != 'SUCCESS') {
+          tryGetResult(queryId, queryTypeEnum);
+        } else {
+          console.log('MERGER COMPUTE FINISHED: queryId ' + queryId);
+          showVizLoadingIcon(false);
+        }
+      });
+      break;
+      default:
       displayErrorMessage('Invalid query type.');
     }
   };
@@ -316,7 +328,9 @@
     selectedGroup = document.getElementById('mergerTreeGroups').value;
     username = document.getElementById('mergerTreeUsername').value;
 
-    //console.log(selectedGroup);
+    computeMergerTrees(selectedGroup, username);
+
+    /*//console.log(selectedGroup);
     var intRegex = /^\d+$/;
     if (!intRegex.test(selectedGroup)) {
       displayErrorMessage('Invalid group number.');
@@ -325,12 +339,50 @@
     showVizLoadingIcon(true);
     var conditions = {
       group: selectedGroup,
-      dataTable: "astro:cosmo50:cosmo50CompleteNodes",
-      resultTable: username + ":cosmo50:cosmo50SelectedNodes"
+      dataTable: "astro:cosmo50:Cosmo50FinalEdges",
+      resultTable: username + ":cosmo50:cosmo50FinalEdgesResults"
     }
 
-    sendMergerTreeQuery(conditions, queryType.MERGER_TREE_Q1);
+    sendMergerTreeQuery(conditions, queryType.MERGER_TREE_Q1);*/
   };
+
+  var computeMergerTrees = function(selectedGroup, username) {
+    showVizLoadingIcon(true);
+    console.log("in computeMergerTrees");
+
+    var queryJSON = (function () {
+      var queryJSON = null;
+      $.ajax({
+          'async': false,
+          'global': false,
+          'url': 'scripts/broadcastSequence.json',
+          'dataType': "json",
+          'success': function (data) {
+              queryJSON = data;
+          }
+      });
+      return queryJSON;
+    })(); 
+    console.log(queryJSON);
+    console.log('Length: ' + JSON.stringify(queryJSON).length);
+
+    var conditions = {
+      group: selectedGroup,
+      user: username,
+      query: queryJSON 
+    }
+
+    $.post(MYRIA_MCOMPUTE_URL, conditions, function(res) {
+      if (res.error) {
+        displayErrorMessage('Something went wrong computing tables, please try again.');
+        return;
+      }
+
+      var queryId = res.queryId;
+      console.log('COMPUTE TREES POST: queryId ' + queryId);
+      tryGetResult(queryId, queryType.MERGER_MASS_Q1);
+    }, 'json');
+  }
 
   var clearPreviousMergerTreeDisplay = function() {
     var previousContent = document.getElementById("svgContent");

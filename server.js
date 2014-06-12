@@ -165,6 +165,37 @@ app.post('/myria/mquerymass', function(req, postResponse) {
   );
 });
 
+// Computes the selected edges tables for the merger trees
+app.post('/myria/mcompute', function(req, postResponse) {
+  var queryJSON = req.param('query');
+  var queryString =  JSON.stringify(queryJSON);
+
+  postResponse.header("Transfer-Encoding", "chunked");
+  postResponse.header("Content-Type", "application/json");
+  
+    request({
+      "url":'http://rest.myria.cs.washington.edu:1776/query',
+      "method": "POST",
+      "Content-Type": "application/json",
+      "rejectUnauthorized": false,
+      "form": queryJSON
+    },
+
+    function (error, response, body) {
+      console.log("ERROR", error);
+      console.log("BODY", body);
+        if (!error && response.statusCode == 201) {
+            postResponse.write(body);
+            postResponse.end();
+        } else {
+            console.log('Error mquerymass: ' + error);
+            console.log('Status code' + response.statusCode);
+            postResponse.write({error: response.statusCode});
+        }
+    }
+  );
+});
+
 // here I think we are just checking that the query complete
 app.get('/myria/mquery', function(req, postResponse){
   console.log("/query/query-" + req.get('query', ''));
