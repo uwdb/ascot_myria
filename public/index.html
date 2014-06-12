@@ -22,6 +22,17 @@
 var gadgets;
 var selectedGadgets = {};
 
+// Temporary while quick dashboard option is not functional
+window.onload = function() {
+  $("#start").fadeOut(0, function() { 
+        $("#gadgetsPanel").show();
+     });
+     $.ajax({
+     'url': '/gadgets/',
+     success: populateGadgetsList 
+   });
+};
+
 function requestNewDashboard(configuration){
   UW.ajax({
     "url": "/dashboard/",
@@ -62,7 +73,7 @@ function populateGadgetsList(gadgetsList){
  $("#gadgetsList").empty();
  for (id in gadgetsList){
    if(gadgetsList.hasOwnProperty(id)){
-     entryHtml = '<li><input type="checkbox" value="' + gadgetsList[id].name + 'name="gadget" value="' + id + '" id="' + id + '"/><label>' + gadgetsList[id].name + 
+     entryHtml = '<li><input type="checkbox" value="' + gadgetsList[id].name + 'name="gadget" value="' + id + '" id="' + id + '"/><label for="' + id + '">' + gadgetsList[id].name + 
                  '</label><div class="counter" style="display:none; float: right; margin: 8px"><button type="button" class="circle counter minus">-</button><p style="margin: 10px; display: inline;">0</p><button type="button" class="circle counter plus">+</button></div></li>';
      $("#gadgetsList").append(entryHtml);
    } 
