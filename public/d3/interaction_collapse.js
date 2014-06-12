@@ -275,7 +275,7 @@ var dataBinParticleAllHalos = [];
     //** SIMvar similaritiesMap = d3.nest().key(function(d) { return d.from_Group; }).map(raw_sims, d3.map);
     var tempHaloNodesMap = d3.nest().key(function(d) { return d.NowGroup; }).map(raw_nodes, d3.map);
     var tempHaloLinksMap = d3.nest().key(function(d) { return d.NowGroup; }).map(raw_links, d3.map);
-
+    
     var tempNodesMap, tempLinksMap, tempRoot;
     tempHaloNodesMap.forEach(function(k, v) {
         tempNodesMap = d3.nest().key(function(d) { return d.HaloID; }).map(v, d3.map);
