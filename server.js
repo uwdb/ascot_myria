@@ -139,7 +139,7 @@ app.post('/myria/mquerymass', function(req, postResponse) {
   var queryString = 'T1 = scan(astro:cosmo50:snapshot512Hash);'
                   + 'T2 = [from T1 emit grp as NowGroup, 18479300000000000.0*sum(mass) as massSum];'
                   + 'T3 = [from T2 where massSum <= ' + req.param('maxRange') + ' and massSum >= ' + req.param('minRange') + ' emit NowGroup];'
-                  + 'store(T3, ' + (req.param('user') || 'public') + ':adhoc:MassRangeGroups);';
+                  + 'store(T3, ' + (req.param('user') || 'astro') + ':mergerTreeCosmo50:broadcastParticlesOfInterest);';
       request({
       "url":'https://demo.myria.cs.washington.edu/execute',
       "method": "POST",
@@ -168,7 +168,6 @@ app.post('/myria/mquerymass', function(req, postResponse) {
 // Computes the selected edges tables for the merger trees
 app.post('/myria/mcompute', function(req, postResponse) {
   var queryJSON = req.param('query');
-  var queryString =  JSON.stringify(queryJSON);
 
   postResponse.header("Transfer-Encoding", "chunked");
   postResponse.header("Content-Type", "application/json");
