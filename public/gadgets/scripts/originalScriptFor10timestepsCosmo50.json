@@ -6,6 +6,80 @@
             {
                 "fragments": [
                     {
+                        "operators": [
+                            {
+                                "opType": "DbQueryScan",
+                                "opName": "V25",
+                                "opId": 1,
+                                "schema": {
+                                    "columnNames": [
+                                        "nowGroup",
+                                        "iOrder",
+                                        "mass",
+                                        "type"
+                                    ],
+                                    "columnTypes": [
+                                        "INT_TYPE",
+                                        "INT_TYPE",
+                                        "FLOAT_TYPE",
+                                        "STRING_TYPE"
+                                    ]
+                                },
+                                "sql": "SELECT grp as nowGroup, iOrder, mass, type FROM \"astro cosmo50 snapshot512Hash\" WHERE grp = 16"
+                            },
+                            {
+                                "argChild": 1,
+                                "opId": 2,
+                                "opType": "CollectProducer"
+                            }
+                        ]
+                    },
+                    {
+                        "workers": [
+                            2
+                        ],
+                        "operators": [
+                            {
+                                "argOperatorId": 2,
+                                "opId": 3,
+                                "opType": "CollectConsumer"
+                            },
+                            {
+                                "argChild": 3,
+                                "opName": "broadcast",
+                                "opId": 4,
+                                "opType": "BroadcastProducer"
+                            }
+                        ]
+                    },
+                    {
+                        "operators": [
+                            {
+                                "argOperatorId": 4,
+                                "opName": "receive",
+                                "opId": 5,
+                                "opType": "BroadcastConsumer"
+                            },
+                            {
+                                "argChild": 5,
+                                "argOverwriteTable": true,
+                                "opType": "DbInsert",
+                                "opName": "V0",
+                                "opId": 6,
+                                "relationKey": {
+                                    "programName": "mergerTreeCosmo50",
+                                    "relationName": "broadcastParticlesOfInterest",
+                                    "userName": "astro"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "type": "SubQuery"
+            },
+            {
+                "fragments": [
+                    {
                         "workers": [
                             2
                         ],

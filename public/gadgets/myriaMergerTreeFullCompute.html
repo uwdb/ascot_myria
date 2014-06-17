@@ -263,6 +263,23 @@
           tryGetResult(queryId, queryTypeEnum);
         } else {
           console.log('MERGER COMPUTE FINISHED: queryId ' + queryId);
+
+          // Not used currently due to drop down selection instead of text input
+          /*var intRegex = /^\d+$/;
+          if (!intRegex.test(selectedGroup)) {
+            displayErrorMessage('Invalid group number.');
+            return;
+          }*/  
+
+          // The computation query has finished
+          // Now we send the query to get the visualization
+          var conditions = {
+            group: selectedGroup,
+            dataTable: "astro:mergerTreeCosmo50:haloTable",
+            resultTable: username + ":mergerTreeCosmo50:cosmo50SelectedNodes"
+          }
+
+          sendMergerTreeQuery(conditions, queryType.MERGER_TREE_Q1);
         }
       });
       break;
@@ -328,21 +345,7 @@
     username = document.getElementById('mergerTreeUsername').value;
 
     computeMergerTrees(selectedGroup, username);
-
-    //console.log(selectedGroup);
-    var intRegex = /^\d+$/;
-    if (!intRegex.test(selectedGroup)) {
-      displayErrorMessage('Invalid group number.');
-      return;
-    }
-    showVizLoadingIcon(true);
-    var conditions = {
-      group: selectedGroup,
-      dataTable: "astro:mergerTreeCosmo50:haloTable",
-      resultTable: username + ":mergerTreeCosmo50:cosmo50SelectedNodes"
-    }
-
-    sendMergerTreeQuery(conditions, queryType.MERGER_TREE_Q1);
+    console.log(selectedGroup);
   };
 
   var computeMergerTrees = function(selectedGroup, username) {
@@ -372,7 +375,6 @@
     }
 
     $.post(MYRIA_MCOMPUTE_URL, conditions, function(res) {
-      console.log("Got here");
       if (res.error) {
         displayErrorMessage('Something went wrong computing tables, please try again.');
         return;
@@ -443,14 +445,14 @@
       .selectAll("option")
       .data(res)
       .enter().append("option")
-      .attr("value", function(d){ return d.NowGroup; })
-      .text(function(d) { return d.NowGroup; });  
+      .attr("value", function(d){ return d.nowGroup; })
+      .text(function(d) { return d.nowGroup; });  
     }); 
   };
 
   // For drop down results sorting
   function sortNumber(a,b) {
-    return a.NowGroup - b.NowGroup;
+    return a.nowGroup - b.nowGroup;
   }
 
   // This computes and stores the Ids of groups within a mass range

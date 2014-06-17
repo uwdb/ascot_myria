@@ -137,8 +137,8 @@ app.post('/myria/mquerymass', function(req, postResponse) {
   postResponse.header("Transfer-Encoding", "chunked");
   postResponse.header("Content-Type", "application/json");
   var queryString = 'T1 = scan(astro:cosmo50:snapshot512Hash);'
-                  + 'T2 = [from T1 emit grp as NowGroup, 18479300000000000.0*sum(mass) as massSum];'
-                  + 'T3 = [from T2 where massSum <= ' + req.param('maxRange') + ' and massSum >= ' + req.param('minRange') + ' emit NowGroup];'
+                  + 'T2 = [from T1 emit grp as nowGroup, 18479300000000000.0*sum(mass) as mass, iOrder, type];'
+                  + 'T3 = [from T2 where mass <= ' + req.param('maxRange') + ' and mass >= ' + req.param('minRange') + ' emit nowGroup, iOrder, mass, type];'
                   + 'store(T3, ' + (req.param('user') || 'astro') + ':mergerTreeCosmo50:broadcastParticlesOfInterest);';
       request({
       "url":'https://demo.myria.cs.washington.edu/execute',
