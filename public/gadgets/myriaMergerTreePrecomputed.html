@@ -38,22 +38,25 @@
     <div id="content">
       <div id="mergerTree">
         <div id="mergerTreeOptions">
+          <div id="error" style="font-size:16px; min-height:0px;"></div>
+          <div id="groupLoading"></div>
           <div id="mergerTreeUserOptions">
             <label>Username </label>
-            <input id="mergerTreeUsername" onchange="checkDisableGroups()"></input> * Required
+            <input id="mergerTreeUsername"></input>
+            <span style="font-size:12px; font-style:italic;">*Required</span>
           </div>
-          <div id="mergerTreeMassRangeOptions">
+          <div id="mergerTreeMassRangeOptions" style = "display:inline;">
             <label>Mass Range </label>
             <select id="massSelection" onchange="rangeSelectChange()" style = "width: 240px;"></select>
           </div>
-          <div id="generateGroupsSection" style="margin-top: 10px">
+          <div id="generateGroupsSection" style="margin-top: 10px; display:inline;">
             <button class="button" id="generateGroupsButton" onclick='sendGroupIdQuery()'>Generate Groups</button>
-            <span id="error"></span>
-            <div id="groupLoading"></div>
           </div>
+          <div>
           <label>Group </label>
           <select id="mergerTreeGroups" title="Sorted by size, limitted to top few hundred" style = "width: 100px;" onchange="tryFormAndSendMergerTreeQuery();" onfocus="this.selectedIndex = -1;">
           </select>
+          <div>
           
           <!-- <input id="mergerTreeGroup" onkeydown="if (event.keyCode == 13) document.getElementById('mQueryButton').click()" style="margin:0px; padding:4px"></input>
           <button id="mQueryButton" onclick="tryFormAndSendMergerTreeQuery()" style="padding:4px;">Execute</button> -->
@@ -183,7 +186,7 @@
     showVizLoadingIcon(false);
     showGroupLoadingIcon(false);
     document.getElementById("mergerTreeGroups").disabled=true;
-    document.getElementById("generateGroupsButton").disabled=true;
+    document.getElementById("generateGroupsButton").disabled=false;
     populateMassRangeDropdown();
   };
 
@@ -266,10 +269,9 @@
 
   var displayMergerTreeResult = function(data1, data2) {
     var raw_times = d3.csv.parse("db,step,time,z\n1,512,13.7,0\n2,504,13.48,0.02\n3,480,12.84,0.07\n4,466,12.47,0.1\n5,456,12.2,0.12\n6,455,12.17,0.13\n7,432,11.56,0.18\n8,408,10.92,0.24\n9,406,10.86,0.25\n10,384,10.27,0.33\n11,336,8.99,0.47\n12,328,8.78,0.5\n13,312,8.35,0.56\n14,288,7.71,0.67\n15,264,7.06,0.78\n16,240,6.42,0.92\n17,226,6.05,1\n18,216,5.78,1.08\n19,192,5.14,1.26\n20,168,4.49,1.5\n21,144,3.85,1.77\n22,128,3.42,2\n23,96,2.57,2.66\n24,84,2.25,3\n25,72,1.93,3.45\n26,48,1.28,5\n27,24,0.64,8.25");
-    console.log(raw_times);
     showVizLoadingIcon(false);
     if (data1.length == 0 || data2.length == 0) {
-      displayErrorMessage('No result for the selected group: ' + selectedGroup);
+      displayErrorMessage('No result for group ' + selectedGroup + '. Must change computation parameters.');
       return;
     }
     showMergerTreePanel(true);
@@ -371,11 +373,11 @@
       } else {
         displayErrorMessage('');
       }
-      console.log(res.length);
+      //Browser tends to crash with too large of a drop down
+      shuffle(res);
+      res = res.slice(0,100);
+      res.sort(sortNumber); //Order from smallest to largest
       
-      // Browser tends to crash with too large of a drop down
-      res.sort(sortNumber); // Order from smallest to largest
-      res = res.slice(0,500);
 
       d3.select("#mergerTreeGroups")
       .selectAll("option")
@@ -393,25 +395,23 @@
 
   var sendGroupIdQuery = function() {
     if (document.getElementById('mergerTreeUsername').value == '') {
+      displayErrorMessage('Must enter a username');
       return;
     }
-
+    displayErrorMessage('');
     showGroupLoadingIcon(true);
-    console.log("in sendGroupIdQuery");
     massRangeTuple = document.getElementById('massSelection').value;
     massRangeTuple = massRangeTuple.split(","); // Tuple is in string form, we split and next parse to int
 
     var selectedMinMassRange = Number(massRangeTuple[0]).toFixed(20); // toFixed removes scientific notation
     var selectedMaxMassRange = Number(massRangeTuple[1]).toFixed(20);
-    console.log("Selected Mass Range: " + selectedMinMassRange +  " -> " +  selectedMaxMassRange);
+    //console.log("Selected Mass Range: " + selectedMinMassRange +  " -> " +  selectedMaxMassRange);
 
     var conditions = {
       user: "public",
       minRange: selectedMinMassRange,
       maxRange: selectedMaxMassRange
     };
-    console.log("Conditions", conditions);
-
     $.post(MYRIA_MQUERYMASS_URL, conditions, function(res) {
       // Get the query id.
       if (res.error) {
@@ -448,7 +448,7 @@
                       "5e10 to 1e11",
                       "1e11 to 2.5e11",
                       "2.5e11 to 5e11",
-                      "5e11 to 5e12   (ex. Milky Way)",
+                      "5e11 to 5e12   (Milky Way)",
                       "5e12 to 1e13"
                       ];
     var select = document.getElementById("massSelection");
@@ -462,6 +462,20 @@
       element.value = [massRangeTuple[0], massRangeTuple[1].split(" ")[0]]; // Gets just the number
       select.appendChild(element);
     }
+  }
+
+  var shuffle = function (array) {
+    var m = array.length, t, i;
+    // While there remain elements to shuffle
+    while (m) {
+      // Pick a remaining element
+      i = Math.floor(Math.random() * m--);
+      // And swap it with the current element.
+      t = array[m];
+      array[m] = array[i];
+      array[i] = t;
+    }
+    return array;
   }
 
   var download = function() {

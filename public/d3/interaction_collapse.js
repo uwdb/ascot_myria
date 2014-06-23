@@ -233,8 +233,8 @@ var dataBinParticleAllHalos = [];
     //scale to fit all timesteps
     nodeDistance = width/maxTime
 
-    massScale.domain([minMass, maxMass]).range([2,12]);
-    linkScale.domain([minSharedParticle, maxSharedParticle]).range([2,12]);
+    massScale.domain([minMass, maxMass]).range([2,10]);
+    linkScale.domain([minSharedParticle, maxSharedParticle]).range([2,10]);
     //LUMINOSITYlumScale.domain([minLum, maxLum]).range([.09, 1]); //for opacity
     timeScale.domain([1,maxTime]).range([0,(maxTime-1)*nodeDistance]);
     //calculates the max scale factor
@@ -578,13 +578,13 @@ function update(source) {
     nodeUpdate.select("circle.shadow")
         .attr("r", function(d)
             {
-             var scaledMass = massScale(d.HaloMass); //up to 12
+             var scaledMass = massScale(d.HaloMass);
              switch(true)
              {
                 case (scaledMass <= 4): return scaledMass+5;
                 case (scaledMass <= 5): return scaledMass*2;
-                case (scaledMass <= 7): return 12;
-                case (scaledMass < 12): return scaledMass+6;
+                case (scaledMass <= 7): return 10;
+                case (scaledMass <= 10): return scaledMass+6;
                 
              }
             })
@@ -592,8 +592,8 @@ function update(source) {
         
     nodeUpdate.select("circle.hover")
         .attr("r", function(d){
-            if(massScale(d.HaloMass) < 7) {
-                return 7;
+            if(massScale(d.HaloMass) < 6) {
+                return 6;
             } else {
                 return massScale(d.HaloMass);
             }
@@ -776,12 +776,12 @@ function click(d) {
     if (d3.event.defaultPrevented) {
         return;
     }
+    clearSelected();
     //LUMINOSITY if( checkBoxToggleLuminosity.checked) { 
     //     checkBoxToggleLuminosity.checked = false;
     // }
     if(d3.event.shiftKey) {
         graphSelected = false;
-        clearSelected();
         toggleSelect(d);
         svgBrushMass.select(".xbrush").call(brushMass.clear());
         svgBrushParticle.select(".xbrush").call(brushParticle.clear());
