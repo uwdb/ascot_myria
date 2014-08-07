@@ -1,3 +1,4 @@
+//this document is for the display of the tree
 function displayMergerTree(raw_links, raw_nodes, raw_times, selectedGroup) {
 //var doc = document.documentElement;
 //var clientWidth = Math.min(doc.clientWidth-50, 1600);
@@ -491,7 +492,7 @@ function update(source) {
     nodes.forEach(function(d) { d.y = d.depth * nodeDistance; });
 
     // Update the nodes…
-    var node = graph.selectAll("g.node")
+    var node = graph.selectAll("g.node") //all the nodes
         .data(nodes, function(d, i) { return d.HaloID; });
 
     //enter any new nodes at the parent's previous position.
@@ -515,7 +516,7 @@ function update(source) {
     nodeEnter.append("circle")
         .attr("class", "hover")
         .attr("r", 1e-6)
-        .on("mouseover", function(d) {
+        .on("mouseover", function(d) { //all the information that shows up when you hover over a node
             var x = zoom.scale()*d.x + zoom.translate()[1];
             var y = zoom.scale()*d.y + zoom.translate()[0];
             if (y <= 80) {
@@ -571,10 +572,9 @@ function update(source) {
 
     nodeUpdate.select("circle.visible")
         .attr("r", function(d) { return massScale(d.HaloMass); })
-        .style("stroke", function(d) { return d.Prog=='1' ? "#D44848" : "lightsteelblue"; })
+        .style("stroke", function(d) {return (d.Prog==1 ? "#D44848" : "lightsteelblue"); }) //chooses the color of the nodes based on if they are a progenitor
         .style("stroke-width", "2")
         .style("opacity", "1");
-        
     nodeUpdate.select("circle.shadow")
         .attr("r", function(d)
             {

@@ -1,3 +1,6 @@
+//server.js sends queries to Myria
+//Precomputed.html - html part is all the visuals
+//                   javascript part organizes queries and stuff
 
   // NPM dependencies
 var express = require('express');
@@ -108,6 +111,7 @@ app.post('/myria/mquerygrp', function(req, postResponse) {
   var queryString = 'results = select * from SCAN(' + req.param('dataTable') +') as f where f.NowGroup=' +
       req.param('group') +
       '; STORE(results, ' + req.param('resultTable') + ');';
+      
       request({
       "url":'https://demo.myria.cs.washington.edu/execute',
       "method": "POST",
@@ -139,7 +143,86 @@ app.post('/myria/mquerymass', function(req, postResponse) {
   var queryString = 'T1 = scan(astro:cosmo50:snapshot512Hash);'
                   + 'T2 = [from T1 emit grp as NowGroup, 18479300000000000.0*sum(mass) as massSum];'
                   + 'T3 = [from T2 where massSum <= ' + req.param('maxRange') + ' and massSum >= ' + req.param('minRange') + ' emit NowGroup];'
-                  + 'store(T3, ' + (req.param('user') || 'public') + ':adhoc:MassRangeGroups);';
+                  + 'store(T3, ' + (/*req.param('user') || */'public') + ':adhoc:MassRangeGroups);';
+      request({
+      "url":'https://demo.myria.cs.washington.edu/execute',
+      "method": "POST",
+      "rejectUnauthorized": false,
+      "form": {
+          query: queryString,
+          language: "MyriaL"
+        }
+    },
+
+    function (error, response, body) {
+      console.log("ERROR", error);
+      console.log("BODY", body);
+        if (!error && response.statusCode == 201) {
+            postResponse.write(body);
+            postResponse.end();
+        } else {
+            console.log('Error mquerymass: ' + error);
+            console.log('Status code' + response.statusCode);
+            postResponse.write({error: response.statusCode});
+        }
+    }
+  );
+});
+
+app.post('/myria/mquerymerger', function(req, postResponse) {
+  postResponse.header("Transfer-Encoding", "chunked");
+  postResponse.header("Content-Type", "application/json");
+  var queryString = 'T1 = scan(public:adhoc:Mergers); '
+                  + 'T2 = [from T1 emit NowGroup, Timestep, mass_ratio]; '
+                  + 'T3 = [from T2 where Timestep <= ' + req.param('maxRange') + ' and Timestep >= ' + req.param('minRange') + ' and mass_ratio <= ' + req.param('massRatio')
+                  + ' emit NowGroup]; '
+                  + 'store(T3, ' + (req.param('user') || 'public') + ':adhoc:MergerRangeGroups);';
+      request({
+      "url":'https://demo.myria.cs.washington.edu/execute',
+      "method": "POST",
+      "rejectUnauthorized": false,
+      "form": {
+          query: queryString,
+          language: "MyriaL"
+        }
+    },
+
+    function (error, response, body) {
+      console.log("ERROR", error);
+      console.log("BODY", body);
+        if (!error && response.statusCode == 201) {
+            postResponse.write(body);
+            postResponse.end();
+        } else {
+            console.log('Error mquerymerger: ' + error);
+            console.log('Status code' + response.statusCode);
+            postResponse.write({error: response.statusCode});
+        }
+    }
+  );
+});
+/*
+var conditions = {
+      user: "public",
+      maxTimeRange: selectedMinTimeRange,
+      minTimeRange: selectedMaxTimeRange,
+      massRatio: selectedMassRatio,
+      minMassRange: selectedMinMassRange,
+      maxMassRange: selectedMaxMassRange
+    };
+*/
+app.post('/myria/mquerymassmerger', function(req, postResponse) {
+  postResponse.header("Transfer-Encoding", "chunked");
+  postResponse.header("Content-Type", "application/json");
+  var queryString = 'T1 = scan(astro:cosmo50:snapshot512Hash); '
+                  + 'T2 = [from T1 emit grp as NowGroup, 18479300000000000.0*sum(mass) as massSum]; '
+                  + 'T3 = [from T2 where massSum <= ' + req.param('maxMassRange') + ' and massSum >= ' + req.param('minMassRange') + ' emit NowGroup]; '
+                  + 'T4 = scan(public:adhoc:Mergers); '
+                  + 'T5 = [from T4 emit NowGroup, Timestep, mass_ratio]; '
+                  + 'T6 = [from T5 where Timestep <= ' + req.param('maxTimeRange') + ' and Timestep >= ' + req.param('minTimeRange') + ' and mass_ratio <= ' + req.param('massRatio')
+                  + ' emit NowGroup]; '
+                  + 'T7 = [from T3 AS T3, T6 AS T6 where T3.NowGroup=T6.NowGroup emit T3.NowGroup]; '
+                  + 'store(T7, public:adhoc:MassMergerRangeGroups); ' ;//+ (req.param('user') || 'public') + ':adhoc:MassMergerRangeGroups); ' ;
       request({
       "url":'https://demo.myria.cs.washington.edu/execute',
       "method": "POST",
@@ -221,6 +304,8 @@ app.get('/myria/mquery', function(req, postResponse){
   });
   request.end();
 });
+
+
 
 //Here we are requesting the resultant data tables and not issue a query.
 //We are basically requesting a download
