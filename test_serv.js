@@ -7,8 +7,6 @@ http.createServer(function (req, res) {
   res.end();
 }).listen(8888);
 
-// dan was here
-
 /* server started */  
 util.puts('> hello world BLAH');
 
