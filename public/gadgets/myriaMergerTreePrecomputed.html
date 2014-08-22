@@ -64,7 +64,7 @@
             <label>billion years and </label>
             <select id="mergerTime2" onchange="rangeSelectChange()" style = "width: 70px;"></select>
             <label>billion years with a mass ratio less than </label>
-            <input id='massRatio' style='width: 30px;' onchange="rangeSelectChange()"></input>
+            <input id='mergerMassRatio' style='width: 30px;' onchange="rangeSelectChange()"></input>
           </div>
 
           <!-- Generate Groups button -->
@@ -74,14 +74,15 @@
           </div>
 
           
-          
+          <!--
+          Similarity Stuff
           <div id="testSimilaritySlider" style="margin-top: 10px; display:inline;">
             <br />
             <label>Find similar trees to this within a similarity of </label>
             <input id="SimSlider" type="range" min="0" max="50" value="0" onchange="showSimValue1(this.value)" />
             <input id="SimSliderRange" onchange="showSimValue2(this.value)" value='0' style="width: 30px;"/>
             <button class="button" id="similarGroupsButton">Go</button>
-          </div>
+          </div>-->
           
 
           <!-- Group dropdown -->
@@ -205,8 +206,15 @@
   var MYRIA_MQUERYGRP_URL = "/myria/mquerygrp";
   var MYRIA_MQUERYMASS_URL = "/myria/mquerymass";
   var MYRIA_MDATA_URL = "/myria/mdata";
+  var MYRIA_MQUERYMERGERGRP_URL = "/myria/mquerymergergrp";
   var MYRIA_MQUERYMERGER_URL = "/myria/mquerymerger";
-  var MYRIA_MQUERYMASSMERGER_URL = "/myria/mquerymassmerger"
+  var MYRIA_MQUERYMASSMERGER_URL = "/myria/mquerymassmerger";
+
+  var ifMergerQuery = false;
+  var minTime = 0;
+  var maxTime = 28;
+  var massRatio = 10000.0;
+
 
   var queryType = {
     MERGER_TREE_Q1: 1,
@@ -275,8 +283,8 @@
         if (res.status != 'SUCCESS') {
           tryGetResult(queryId, queryTypeEnum);
         } else {
-          // Now we are geting the resulting nodes table from myria
-          $.get(MYRIA_MDATA_URL, {user: username, program: 'cosmo50', table: 'cosmo50SelectedNodes'}, getSecondMergerTreeQueryResult, 'json');
+            // Now we are geting the resulting nodes table from myria
+              $.get(MYRIA_MDATA_URL, {user: username, program: 'cosmo50', table: 'cosmo50SelectedNodes'}, getSecondMergerTreeQueryResult, 'json');
           }
       });
       break;
@@ -352,17 +360,33 @@
   // to the server. In our case, the server is the server.js javascript file. So we have to
   // look there to see what /myria/mquery actually calls  
   var sendMergerTreeQuery = function(conditions, queryType) {
-    $.post(MYRIA_MQUERYGRP_URL, conditions, function(res) {
-    // Get the query id.
-    if (res.error) {
-      displayErrorMessage('Something went wrong getting grp, please try again.');
-      return;
-    }
-    var queryId = res.queryId;
-    console.log('GRP QUERY POST: queryId ' + queryId);
+    var resultTable = conditions.resultTable;
+    if(ifMergerQuery && resultTable.substring(resultTable.length-5, resultTable.length)=='Nodes') {
+      $.post(MYRIA_MQUERYMERGERGRP_URL, conditions, function(res) {
+      // Get the query id.
+      console.log(resultTable.substring(resultTable.length-5, resultTable.length))
+      if (res.error) {
+        displayErrorMessage('Something went wrong getting grp, please try again.');
+        return;
+      }
+      var queryId = res.queryId;
+      console.log('GRP QUERY POST: queryId ' + queryId);
 
-    tryGetResult(queryId, queryType);
-    }, 'json');
+      tryGetResult(queryId, queryType);
+      }, 'json');
+    } else {
+    $.post(MYRIA_MQUERYGRP_URL, conditions, function(res) {
+      // Get the query id.
+      if (res.error) {
+        displayErrorMessage('Something went wrong getting grp, please try again.');
+        return;
+      }
+      var queryId = res.queryId;
+      console.log('GRP QUERY POST: queryId ' + queryId);
+
+      tryGetResult(queryId, queryType);
+      }, 'json');
+    }
   }
 
   var tryFormAndSendMergerTreeQuery = function() {
@@ -379,10 +403,21 @@
       return;
     }
     showVizLoadingIcon(true);
-    var conditions = {
-      group: selectedGroup,
-      dataTable: "astro:cosmo50:cosmo50CompleteNodes",
-      resultTable: username + ":cosmo50:cosmo50SelectedNodes"
+    if(ifMergerQuery) {
+      var conditions = {
+        group: selectedGroup,
+        dataTable: "public:adhoc:ifMergerQuery",
+        resultTable: username + ":cosmo50:cosmo50SelectedNodes",
+        minTimeRange: minTime,
+        maxTimeRange: maxTime,
+        massRatio: massRatio
+      }
+    } else {
+      var conditions = {
+        group: selectedGroup,
+        dataTable: "astro:cosmo50:cosmo50CompleteNodes",
+        resultTable: username + ":cosmo50:cosmo50SelectedNodes"
+      }
     }
 
     sendMergerTreeQuery(conditions, queryType.MERGER_TREE_Q1);
@@ -426,7 +461,7 @@
   };
 
   var populateMassMergerTreeGroups = function() {    
-    $.get(MYRIA_MDATA_URL, {user: 'public', program: 'adhoc', table: 'MassRangeGroups'}, function(res) {
+    $.get(MYRIA_MDATA_URL, {user: document.getElementById('mergerTreeUsername').value, program: 'adhoc', table: 'MassRangeGroups'}, function(res) {
       showGroupLoadingIcon(false);
       document.getElementById("mergerTreeGroups").disabled=false;
       
@@ -454,7 +489,7 @@
 
   //This function finds all the merger trees that fit in the merger parameters
   var populateMajorMergerTreeGroups = function() {    
-    $.get(MYRIA_MDATA_URL, {user: 'public', program: 'adhoc', table: 'MergerRangeGroups'}, function(res) {
+    $.get(MYRIA_MDATA_URL, {user: document.getElementById('mergerTreeUsername').value, program: 'adhoc', table: 'MergerRangeGroups'}, function(res) {
       showGroupLoadingIcon(false);
       document.getElementById("mergerTreeGroups").disabled=false;
       
@@ -481,7 +516,7 @@
 
   //This function finds all the merger trees that fit in the mass and merger parameters
   var populateMajorMassMergerTreeGroups = function() {   
-    $.get(MYRIA_MDATA_URL, {user: 'public', program: 'adhoc', table: 'MassMergerRangeGroups'}, function(res) {
+    $.get(MYRIA_MDATA_URL, {user: document.getElementById('mergerTreeUsername').value, program: 'adhoc', table: 'MassMergerRangeGroups'}, function(res) {
       showGroupLoadingIcon(false);
       document.getElementById('mergerTreeGroups').disabled=true;
       document.getElementById("mergerTreeGroups").disabled=false;
@@ -515,6 +550,11 @@
 
   //Organizes when to go through which function - depends on which parameters are filled in
   var sendGroupIdQuery = function() {
+    ifMergerQuery = false;
+    minTime = 0;
+    maxTime = 28;
+    massRatio = 10000.0;
+
     if (document.getElementById('mergerTreeUsername').value == '') {
       displayErrorMessage('Must enter a username');
       return;
@@ -522,15 +562,13 @@
     displayErrorMessage('');
     showGroupLoadingIcon(true);
     
-    if (document.getElementById('massSelection').value == ' ,' ) {
-      if (document.getElementById('mergerTime1').value  == '' && document.getElementById('mergerTime2').value == '' && document.getElementById('massRatio').value === '') {
+    if (document.getElementById('massSelection').value == ',' && document.getElementById('mergerTime1').value  == '' && document.getElementById('mergerTime2').value == '' && document.getElementById('mergerMassRatio').value === '') {
         displayErrorMessage('Please enter parameters');
         showGroupLoadingIcon(false);
         return;
-      }
-      else
+    } else if (document.getElementById('massSelection').value == ',') {
         sendMergerGroupIdQuery();
-    } else if (document.getElementById('mergerTime1').value  == '' && document.getElementById('mergerTime2').value == '' && document.getElementById('massRatio').value === '') {
+    } else if (document.getElementById('mergerTime1').value  == '' && document.getElementById('mergerTime2').value == '' && document.getElementById('mergerMassRatio').value === '') {
           sendMassGroupIdQuery();
     }
     else {
@@ -553,7 +591,7 @@
     console.log("Selected Mass Range: " + selectedMinMassRange +  " -> " +  selectedMaxMassRange);
 
     var conditions = {
-      user: "public",
+      user: document.getElementById('mergerTreeUsername').value,
       minRange: selectedMinMassRange,
       maxRange: selectedMaxMassRange
     };
@@ -573,23 +611,30 @@
   //Sets up the query for queries involving the merger options but not the mass options
   var sendMergerGroupIdQuery = function() {
     document.getElementById('mergerTreeUsername').disabled = true;
+    ifMergerQuery = true;
 
     timeRangeTuple1 = document.getElementById('mergerTime1').value;
     timeRangeTuple2 = document.getElementById('mergerTime2').value; // Tuple is in string form, we split and next parse to int
-    mergerMassRatio = document.getElementById('massRatio').value;
+    mergerMassRatio = document.getElementById('mergerMassRatio').value;
     
-    if(mergerMassRatio === '')
+    if(mergerMassRatio === '') {
       mergerMassRatio = '1000';
-    if(timeRangeTuple1 === '')
+      document.getElementById('mergerMassRatio').value = '1000';
+    }
+    if(timeRangeTuple1 === '') {
       timeRangeTuple1 = '0.6';
-    if(timeRangeTuple2 === '')
+      document.getElementById('mergerTime1').value = '0.6';
+    }
+    if(timeRangeTuple2 === '') {
       timeRangeTuple2 = '13.7';
+      document.getElementById('mergerTime2').value = '13.7';
+    }
     
     console.log(timeRangeTuple1 + ' to ' + timeRangeTuple2 + ' with mass ratio ' + mergerMassRatio);
-    var selectedMinTimeRange = Number(1.0*parseFloat(YearsToTimestep(timeRangeTuple1))); // toFixed removes scientific notation
-    var selectedMaxTimeRange = Number(1.0*parseFloat(YearsToTimestep(timeRangeTuple2)));
+    var selectedMaxTimeRange = Number(1.0*parseFloat(YearsToTimestep(timeRangeTuple1))); // toFixed removes scientific notation
+    var selectedMinTimeRange = Number(1.0*parseFloat(YearsToTimestep(timeRangeTuple2)));
     var selectedMassRatio = Number(1.0*parseFloat(mergerMassRatio));
-    if(selectedMinTimeRange < selectedMaxTimeRange) {
+    if(selectedMinTimeRange > selectedMaxTimeRange) {
       displayErrorMessage('Minimum time is greater than maximum time');
       showGroupLoadingIcon(false);
       return;
@@ -597,11 +642,14 @@
     displayErrorMessage('');
     console.log("Selected Time Range: " + selectedMinTimeRange +  " -> " +  selectedMaxTimeRange);
     console.log('Selected Mass Ratio: ' + selectedMassRatio);
+    minTime = selectedMinTimeRange;
+    maxTime = selectedMaxTimeRange;
+    massRatio = selectedMassRatio;
 
     var conditions = {
-      user: "public",
-      maxRange: selectedMinTimeRange,
-      minRange: selectedMaxTimeRange,
+      user: document.getElementById('mergerTreeUsername').value,
+      maxRange: selectedMaxTimeRange,
+      minRange: selectedMinTimeRange,
       massRatio: selectedMassRatio
     };
     $.post(MYRIA_MQUERYMERGER_URL, conditions, function(res) {
@@ -620,6 +668,7 @@
   //sets up queries involving both mass and merger options
   var sendMassMergerGroupIdQuery = function() {
     document.getElementById('mergerTreeUsername').disabled = true;
+    ifMergerQuery = true;
     massRangeTuple = document.getElementById('massSelection').value;
     massRangeTuple = massRangeTuple.split(","); // Tuple is in string form, we split and next parse to int
 
@@ -629,19 +678,26 @@
 
     timeRangeTuple1 = document.getElementById('mergerTime1').value;
     timeRangeTuple2 = document.getElementById('mergerTime2').value; // Tuple is in string form, we split and next parse to int
-    mergerMassRatio = document.getElementById('massRatio').value;
+    mergerMassRatio = document.getElementById('mergerMassRatio').value;
     console.log(timeRangeTuple1);
-    if(mergerMassRatio === '')
+
+    if(mergerMassRatio === '') {
       mergerMassRatio = '1000';
-    if(timeRangeTuple1 === '')
+      document.getElementById('mergerMassRatio').value = '1000';
+    }
+    if(timeRangeTuple1 === '') {
       timeRangeTuple1 = '0.6';
-    if(timeRangeTuple2 === '')
+      document.getElementById('mergerTime1').value = '0.6';
+    }
+    if(timeRangeTuple2 === '') {
       timeRangeTuple2 = '13.7';
+      document.getElementById('mergerTime2').value = '13.7';
+    }
     
-    var selectedMinTimeRange = Number(1.0*parseFloat(YearsToTimestep(timeRangeTuple1))); // toFixed removes scientific notation
-    var selectedMaxTimeRange = Number(1.0*parseFloat(YearsToTimestep(timeRangeTuple2)));
+    var selectedMaxTimeRange = Number(1.0*parseFloat(YearsToTimestep(timeRangeTuple1))); // toFixed removes scientific notation
+    var selectedMinTimeRange = Number(1.0*parseFloat(YearsToTimestep(timeRangeTuple2)));
     var selectedMassRatio = Number(1.0*parseFloat(mergerMassRatio));
-    if(selectedMinTimeRange < selectedMaxTimeRange) {
+    if(selectedMinTimeRange > selectedMaxTimeRange) {
       displayErrorMessage('Minimum time is greater than maximum time');
       showGroupLoadingIcon(false);
       return;
@@ -650,12 +706,14 @@
     console.log("Selected Time Range: " + selectedMinTimeRange +  " -> " +  selectedMaxTimeRange);
     console.log("Selected Mass Range: " + selectedMinMassRange +  " -> " +  selectedMaxMassRange);
     console.log("Selected Mass Ratio: " + selectedMassRatio);
-
+    minTime = selectedMinTimeRange;
+    maxTime = selectedMaxTimeRange;
+    massRatio = selectedMassRatio;
 
     var conditions = {
-      user: "public",
-      maxTimeRange: selectedMinTimeRange,
-      minTimeRange: selectedMaxTimeRange,
+      user: document.getElementById('mergerTreeUsername').value,
+      maxTimeRange: selectedMaxTimeRange,
+      minTimeRange: selectedMinTimeRange,
       massRatio: selectedMassRatio,
       minMassRange: selectedMinMassRange,
       maxMassRange: selectedMaxMassRange
@@ -691,7 +749,7 @@
   }
 
   var populateMassRangeDropdown = function() {
-    var massRanges = [" ",
+    var massRanges = ["",
                       "5e9 to 1e10   (Dwarf Galaxies)",
                       "1e10 to 1.5e10",
                       "1.5e10 to 2e10",
@@ -716,7 +774,7 @@
         massRangeValues[1] = ' ';
       element.value = [massRangeValues[0], massRangeValues[1].split(" ")[0]]; // Gets just the number
       select.appendChild(element);
-      console.log(element);
+      
     }
   }
 
@@ -780,13 +838,15 @@
       select.appendChild(element);
     }
   }*/
+  /*
+  Similarity helper functions
   var showSimValue1 = function(newValue) {
     document.getElementById("SimSliderRange").value=newValue;
   }
 
   var showSimValue2 = function(newValue) {
     document.getElementById("SimSlider").value=newValue;
-  }
+  }*/
 
   var shuffle = function (array) {
     var m = array.length, t, i;
@@ -822,7 +882,7 @@
     document.getElementById('massSelection').value = ' ,';
     document.getElementById('mergerTime1').value = '';
     document.getElementById('mergerTime2').value = '';
-    document.getElementById('massRatio').value = '';
+    document.getElementById('mergerMassRatio').value = '';
     document.getElementById('mergerTreeGroups').value = '';
   }
 

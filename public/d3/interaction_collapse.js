@@ -572,7 +572,7 @@ function update(source) {
 
     nodeUpdate.select("circle.visible")
         .attr("r", function(d) { return massScale(d.HaloMass); })
-        .style("stroke", function(d) {return (d.Prog==1 ? "#D44848" : "lightsteelblue"); }) //chooses the color of the nodes based on if they are a progenitor
+        .style("stroke", function(d) {return ((d.ifMergerQuery==1 && d.ifMerger==1) ? "#FFB31A" : (d.Prog==1 ? "D44848" : "lightsteelblue")); }) //chooses the color of the nodes based on if they are a progenitor
         .style("stroke-width", "2")
         .style("opacity", "1");
     nodeUpdate.select("circle.shadow")
