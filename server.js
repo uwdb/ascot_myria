@@ -6,7 +6,7 @@
 var express = require('express');
 var sharejs = require('./ShareJS').server;
 var faye = require('faye');
-var http = require('http');
+var https = require('https');
 
 // Local Modules
 var DashboardManager = require('./js/server/dashboardsManager');
@@ -306,7 +306,7 @@ app.post('/myria/mcompute', function(req, postResponse) {
   postResponse.header("Content-Type", "application/json");
   
     request({
-      "url":'http://rest.myria.cs.washington.edu:1776/query',
+      "url":'https://rest.myria.cs.washington.edu:1776/query',
       "method": "POST",
       "json": queryJSON
     },
@@ -329,8 +329,9 @@ app.post('/myria/mcompute', function(req, postResponse) {
 // here I think we are just checking that the query complete
 app.get('/myria/mquery', function(req, postResponse){
   console.log("/query/query-" + req.get('query', ''));
-  var request = http.request({
-    hostname: "vega.cs.washington.edu",
+  var request = https.request({
+    rejectUnauthorized: false,
+    hostname: "rest.myria.cs.washington.edu",
     port: 1776,
     path: "/query/query-" + req.param('query'),
     method: "get",
@@ -359,8 +360,9 @@ app.get('/myria/mquery', function(req, postResponse){
 //Here we are requesting the resultant data tables and not issue a query.
 //We are basically requesting a download
 app.get('/myria/mdata', function(req, postResponse){
-  var request = http.request({
-    hostname: "vega.cs.washington.edu",
+  var request = https.request({
+    rejectUnauthorized: false,
+    hostname: "rest.myria.cs.washington.edu",
     port: 1776,
     path: "/dataset/user-" + req.param('user') + "/program-" + (req.param('program') || 'adhoc') + "/relation-" + req.param('table') + '/data?format=json',
     // path: "/dataset/user-" + (req.param('resultTable') || 'public') + "/program-adhoc/relation-MassRangeGroups/data?format=json",
