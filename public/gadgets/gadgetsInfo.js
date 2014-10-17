@@ -92,19 +92,19 @@ var gadgets = {
   //   version: "0.1"
   // },
   myriaMergerTreePrecomputed: {
-    name: "Myria Merger Tree (Precomputed)",
+    name: "Myria Merger Tree",
     fileName: "myriaMergerTreePrecomputed.html",
     description: "Provide visualization of merger trees",
     author: "UWDB",
     version: "0.1"
   },
-  myriaMergerTreeFullCompute: {
-    name: "Myria Merger Tree",
-    fileName: "myriaMergerTreeFullCompute.html",
-    description: "Provide visualization of merger trees",
-    author: "UWDB",
-    version: "0.1"
-  },
+//  myriaMergerTreeFullCompute: {
+//    name: "Myria Merger Tree",
+//    fileName: "myriaMergerTreeFullCompute.html",
+//    description: "Provide visualization of merger trees",
+//    author: "UWDB",
+//    version: "0.1"
+//  },
   /*
   fitsViewer_PDR: { 
     name: "Fits Viewer PDR",
