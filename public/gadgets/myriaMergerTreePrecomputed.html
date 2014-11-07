@@ -341,7 +341,6 @@
       default:
       displayErrorMessage('Invalid query type.');
     }
-    
   };
 
   // After getting the nodes table we are now getting the computed edges table
@@ -443,6 +442,10 @@
                   .enter().append("option")
                   .attr("value", function(d){ return d.NowGroup; })
                   .text(function(d) { return d.NowGroup; });
+
+
+          // Now we populate the visualization with the first tree
+          tryFormAndSendMergerTreeQuery()
       });
   };
 
