@@ -47,12 +47,12 @@ rect {
   fill: #111111;
 }
 
-#topContainer {
+.topContainer {
   font-family:arial;
   font-size:12px;
 }
 
-#topContainer input{
+.topContainer input{
   top: 5px;
 }
 

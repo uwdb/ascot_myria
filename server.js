@@ -13,11 +13,13 @@ var DashboardManager = require('./js/server/dashboardsManager');
 var DataSetsManager = require('./js/server/dataSetsManager');
 var GadgetsManager = require('./public/gadgets/gadgetsInfo');
 var xhr = require("./js/shared/xhr");
+var _  = require('underscore');
 
 var app = express.createServer();
 var dashboardsManager;
 var dataSetsManager;
 var gadgetsManager;
+
 
 // Share JS options
 var options = {
@@ -99,6 +101,36 @@ app.post('/dataSet/', function(req, res){
 });
 
 var request = require('request');
+
+app.post('/myria/postquery', function(req, postResponse) {
+  postResponse.header("Transfer-Encoding", "chunked");
+  postResponse.header("Content-Type", "application/json");
+  //var resultTable = req.param('resultTable');
+  var queryString = req.param('queryString');
+  console.log("query at server: ", queryString);
+  request({
+    "url":'https://demo.myria.cs.washington.edu/execute',
+    "method": "POST",
+    "rejectUnauthorized": false,
+    "form": {
+      query: queryString,
+      language: "MyriaL"
+    }},
+    //The results the myria sends to server.js are now collected and sent
+    //to the callback function in our sendMergerTree() function
+    function (error, response, body) {
+      if (!error && response.statusCode == 201) {
+        postResponse.write(body);
+        postResponse.end();
+      } else {
+        console.log('Error postquery: ' + error);
+        console.log('Status code' + response.statusCode);
+        postResponse.write({error: response.statusCode});
+      }
+    }
+  );
+});
+
 //This is where our server defines what to do when a post request is sent to it
 //with the url myria/mquery. This is where we actually query myria. Something to note
 //is that we are queries demo.myria because we use the parsing functionality to issue a
@@ -174,6 +206,7 @@ app.post('/myria/mquerymass', function(req, postResponse) {
   );
 });
 
+//LJO 11/3 Never called
 app.post('/myria/mquerymerger', function(req, postResponse) {
   postResponse.header("Transfer-Encoding", "chunked");
   postResponse.header("Content-Type", "application/json");
@@ -297,7 +330,7 @@ app.post('/myria/mquerymergergrp', function(req, postResponse) {
   );
 });
 
-// Computes the selected edges tables for the merger trees
+// Computes the selected edges tables for the merger trees (for full compute)
 app.post('/myria/mcompute', function(req, postResponse) {
   var queryJSON = req.param('query');
   var queryString =  JSON.stringify(queryJSON);
@@ -327,7 +360,7 @@ app.post('/myria/mcompute', function(req, postResponse) {
 });
 
 // here I think we are just checking that the query complete
-app.get('/myria/mquery', function(req, postResponse){
+app.get('/myria/querystatus', function(req, postResponse){
   console.log("/query/query-" + req.get('query', ''));
   var request = https.request({
     rejectUnauthorized: false,
@@ -359,7 +392,7 @@ app.get('/myria/mquery', function(req, postResponse){
 
 //Here we are requesting the resultant data tables and not issue a query.
 //We are basically requesting a download
-app.get('/myria/mdata', function(req, postResponse){
+app.get('/myria/getdata', function(req, postResponse){
   var request = https.request({
     rejectUnauthorized: false,
     hostname: "rest.myria.cs.washington.edu",
