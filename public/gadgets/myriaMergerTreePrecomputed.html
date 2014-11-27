@@ -235,6 +235,8 @@
   //Dataset to use
   var dataset = "cosmo8";
   var program = "amiga";
+  var nodestable = "nodes112514";
+  var edgetable = "edges112514";
   var massConversion = 18479300000000000.0;
 
   // Set this to allow an option in range selection for custom user ranges
@@ -259,8 +261,7 @@
   var mergerTree;
   var username;
 
-  var timeRanges = ["0.6", "1.3", "1.9", "2.3", "2.6", "3.4", "3.9", "4.5", "5.1", "5.8", "6.0", "6.4", "7.1", "7.7", "8.3", "8.8", "9.0", "10.3", "10.9", "10.9 ", "11.6", "12.2", "12.2 ", "12.5", "12.8", "13.5", "13.7"
-  ];
+  var timeRanges = ["0.6", "1.3", "1.9", "2.3", "2.6", "3.4", "3.9", "4.5", "5.1", "5.8", "6.0", "6.4", "7.1", "7.7", "8.3", "8.8", "9.0", "10.3", "10.9", "10.9 ", "11.6", "12.2", "12.2 ", "12.5", "12.8", "13.5", "13.7"];
   var MAX_TIME_STEP = 27;
 
   var setUp = function() {
@@ -305,7 +306,7 @@
         } else {
           // We are now sending the query to compute the edges table
           var queryString = _.str.sprintf('T1 = SELECT * FROM scan(%s:%s:%s) as R WHERE R.NowGroup=%s; \
-      store(T1, %s:%s:%s);', dataset, program, "edges112514", selectedGroup, username, "myMerger", "edges");
+      store(T1, %s:%s:%s);', dataset, program, edgetable, selectedGroup, username, "myMerger"+dataset, "edges");
           sendQueryMyria(queryString, queryType.MERGER_GET_TREE_2);
         }
       });
@@ -316,7 +317,7 @@
           tryGetResult(queryId, queryTypeEnum);
         } else {
             // Now we are geting the resulting nodes table from myria
-            $.get(MYRIA_GETDATA_URL, {user: username, program: "myMerger", table: "nodes"}, getSecondMergerTreeQueryResult, 'json');
+            $.get(MYRIA_GETDATA_URL, {user: username, program: "myMerger"+dataset, table: "nodes"}, getSecondMergerTreeQueryResult, 'json');
           }
         });
       break;
@@ -349,7 +350,7 @@
   // After getting the nodes table we are now getting the computed edges table
   var getSecondMergerTreeQueryResult = function(data) {
     username = document.getElementById('mergerTreeUsername').value;
-    $.get(MYRIA_GETDATA_URL, {user: username, program: "myMerger", table: "edges"}, function(res) {
+    $.get(MYRIA_GETDATA_URL, {user: username, program: "myMerger"+dataset, table: "edges"}, function(res) {
       displayMergerTreeResult(data,res);
     }, 'json');
   }
@@ -401,7 +402,7 @@
 
     showVizLoadingIcon(true);
     var queryString = _.str.sprintf('T1 = SELECT * FROM scan(%s:%s:%s) as R WHERE R.NowGroup=%s; \
-      store(T1, %s:%s:%s);', dataset, program, "nodes112514", selectedGroup, username, "myMerger", "nodes");
+      store(T1, %s:%s:%s);', dataset, program, nodestable, selectedGroup, username, "myMerger"+dataset, "nodes");
     console.log("JS", queryString);
     sendQueryMyria(queryString, queryType.MERGER_GET_TREE_1);
     // if(ifMergerQuery) {
@@ -426,7 +427,7 @@
   //This function queries and populates the list of available group ids
   var populateGroupIdMenu = function(tableName) {
     console.log("inside populateGroupIdMenu");
-    $.get(MYRIA_GETDATA_URL, {user: document.getElementById('mergerTreeUsername').value, program: 'myMerger', table: tableName}, function(res) {
+    $.get(MYRIA_GETDATA_URL, {user: document.getElementById('mergerTreeUsername').value, program: 'myMerger' + dataset, table: tableName}, function(res) {
       showGroupLoadingIcon(false);
       document.getElementById("mergerTreeGroups").disabled=false;
 
@@ -434,9 +435,6 @@
         displayErrorMessage('No groups in selected range');
         document.getElementById("mergerTreeGroups").disabled=true;
         return;
-      } else {
-        console.log("WHAT IS THIS?");
-        displayErrorMessage('');
       }
 
       //Browser tends to crash with too large of a drop down
@@ -500,9 +498,15 @@
     console.log("Sending Group Query")
     username = document.getElementById('mergerTreeUsername').value;
 
+    // var queryString = = _.str.sprintf('T1 = scan(%s:%s:%s);\
+    //   T2 = [from T1 where Timestep == 1 and HaloMass <= %.1f and HaloMass >= %.1f emit NowGroup];\
+    //   T3 = [from T1 where Timestep >= %s and Timestep <= %s and MassRatio > 0 and MassRatio <= %s emit NowGroup]
+    //   T4 = distinct([from T2, T3 where T2.NowGroup = T3.NowGroup emit NowGroup])
+    //   store(T4, %s:myMerger%s:GroupIds);', dataset, program, nodestable, +selectedMaxMassRange, +selectedMinMassRange, majorMergerMinTime, majorMergerMaxTime, majorMergerMassRatio, username, dataset);
+    
     var queryString = _.str.sprintf('T1 = scan(%s:%s:%s);\
       T2 = [from T1 where Timestep == 1 and HaloMass <= %.1f and HaloMass >= %.1f emit NowGroup, HaloMass];\
-      store(T2, %s:myMerger:GroupIds);', dataset, program, "nodes112514", +selectedMaxMassRange, +selectedMinMassRange, username);
+      store(T2, %s:myMerger%s:GroupIds);', dataset, program, nodestable, +selectedMaxMassRange, +selectedMinMassRange, username, dataset);
     console.log("JS", queryString);
     sendQueryMyria(queryString, queryType.MERGER_GET_GROUPS);
   }

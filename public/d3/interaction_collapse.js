@@ -1036,11 +1036,11 @@ function resetTree() {
     }, timeOut1);
 }
 
-unction download() {
+function download() {
     var data = "GrpID,Time(gyr),Mass\n";
     function buildHaloString(d) {
         if (d.selected) {
-            data += [d.GrpId,timeMap.get(d.Timestep)[0].time,d.HaloMass].join(',') + "\n";
+            data += [d.GrpID,timeMap.get(d.Timestep)[0].time,d.HaloMass].join(',') + "\n";
         }
         if (d.children) {
             d.children.forEach(function(f) {buildHaloString(f);});
@@ -1054,7 +1054,7 @@ unction download() {
                 d.children.forEach(
                     function(f) {
                         if (f.selected) {
-                            edgeData = linksMap.get(f.HaloId)[0]
+                            edgeData = linksMap.get(f.HaloID)[0]
                             data2 += [timeMap.get(edgeData.CurrentTime)[0].time,edgeData.CurrentGrp,edgeData.NextGrp,edgeData.SharedParticleCount,edgeData.SharedDarkParticleCount].join(',') + "\n";
                         }
                     });
