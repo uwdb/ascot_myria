@@ -1,69 +1,36 @@
 {
     "fragments": [
-        { "workers": [
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11,
-                12,
-                13,
-                14,
-                15,
-                16,
-                17,
-                18,
-                19,
-                20,
-                21,
-                22,
-                23,
-                24,
-                25,
-                26,
-                27,
-                28,
-                29,
-                30,
-                31,
-                32
-            ],
+        {
             "operators": [
-               {
-                   "opType": "DbQueryScan",
-                   "opName": "Scan",
-                   "schema": {
-                       "columnNames": [
-                           "timestep","iord","mass","grp","type"
-                       ],
-                       "columnTypes": [
-                           "INT_TYPE","INT_TYPE","FLOAT_TYPE","INT_TYPE","STRING_TYPE"
-                       ]
-                   },
-                   "sql": "SELECT DISTINCT 1 as timestep, iord, mass, grp, type FROM \"public adhoc todayParticlesNis12\" as p1 UNION SELECT DISTINCT 2 as timestep, p2.iord, p2.mass, p2.grp, p2.type FROM \"public adhoc todayParticlesNis12\" p1, \"public adhoc joinHashSnapshot212I\" p2 WHERE p1.iOrd = p2.iOrd"
-               },
                 {
-                    "argChild": "Scan",
+                    "opType": "DbQueryScan",
+                    "opName": "Scan",
+                    "opId": 1,
+                    "schema": {
+                        "columnNames": [
+                            "countParticles"
+                        ],
+                        "columnTypes": [
+                            "INT_TYPE"
+                        ]
+                    },
+                    "sql": "SELECT count(*) as countParticles FROM \"public:vulcan:snapshot1818Hash\""
+                },
+                {
+                    "argChild": 1,
+                    "opId": 3,
                     "argOverwriteTable": true,
                     "opName": "Insert",
                     "opType": "DbInsert",
                     "relationKey": {
                         "programName": "adhoc",
-                        "relationName": "ParticleTableCollectN12I",
+                        "relationName": "count1818",
                         "userName": "public"
-                    
+                    }
                 }
-				 }
             ]
-				
         }
     ],
-    "logicalRa": "particleTableParallel",
-    "rawDatalog": "particleTableParallel"
+    "logicalRa": "parallel count",
+    "rawQuery": "parallel count"
 }
