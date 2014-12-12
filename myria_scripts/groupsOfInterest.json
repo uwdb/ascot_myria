@@ -1,0 +1,40 @@
+{
+    "fragments": [
+        {
+            "operators": [
+                {
+                    "opType": "DbQueryScan",
+                    "opName": "Scan",
+                    "opId": 1,
+                    "schema": {
+                         "columnNames": [
+                            "nowGroup",
+                            "timestep",
+                            "grpID"
+                        ],
+                        "columnTypes": [
+                            "INT_TYPE",
+                            "INT_TYPE",
+                            "INT_TYPE"
+                        ]
+                    },
+                    "sql": "SELECT DISTINCT s.\"nowGroup\" as nowGroup, s.grp as \"grpID\", s.timestep as \"timeStep\" FROM \"public:vulcan:particlesOfInterest\" as s"
+                },
+                {
+                    "argChild": 1,
+                    "opId": 2,
+                    "argOverwriteTable": true,
+                    "opName": "Insert",
+                    "opType": "DbInsert",
+                    "relationKey": {
+                        "programName": "vulcan",
+                        "relationName": "groupsOfInterest",
+                        "userName": "public"
+                    }
+                }
+            ]
+        }
+    ],
+    "logicalRa": "groups of interest from all particles of interest",
+    "rawQuery": "groups of interest from all particles of interest"
+}
