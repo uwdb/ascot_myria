@@ -1,0 +1,88 @@
+{
+    "fragments": [
+        {
+            "operators": [
+                {
+                    "opType": "TableScan",
+                    "opName": "Scan",
+                    "opId": 1,
+                    "relationKey": {
+                        "userName": "public",
+                        "relationName": "localHaloTable",
+                        "programName": "vulcan"
+                    },
+                },
+                {
+                    "argChild": 1,
+                    "opName": "ShuffleProducer",
+                    "opId": 2,
+                    "opType": "ShuffleProducer",
+                    "argPf": {
+                        "indexes": [
+                            0,
+                            1,
+                            2
+                        ],
+                        "type": "MultiFieldHash"
+                    }
+                }
+            ]
+        },
+        {
+            "operators": [
+                {
+                    "opType":"ShuffleConsumer",
+                    "opName":"ShuffleConsumer",
+                    "opId": 3,
+                    "argOperatorId": 2
+                },
+                {
+                    "opType": "MultiGroupByAggregate",
+                    "opName": "AggregateConsume",
+                    "argChild": 3,
+                    "aggregators": [
+                        {
+                            "column": 3,
+                            "aggOps": [
+                                "SUM"
+                            ],
+                            "type": "SingleColumn"
+                        },
+                        {
+                            "column": 4,
+                            "aggOps": [
+                                "SUM"
+                            ],
+                            "type": "SingleColumn"
+                        },
+                        {
+                            "column": 5,
+                            "aggOps": [
+                                "SUM"
+                            ],
+                            "type": "SingleColumn"
+                        }
+                    ],
+                    "argGroupFields": [
+                        0,
+                        1,
+                        2
+                    ]
+                },
+                {
+                    "opType": "DbInsert",
+                    "opName": "Insert",
+                    "argOverwriteTable": true,
+                    "argChild": 3,
+                    "relationKey": {
+                        "programName": "vulcan",
+                        "relationName": "haloTable",
+                        "userName": "public"
+                    }
+                }
+            ]
+        }
+    ],
+    "logicalRa": "compute halo table to store on each worker",
+    "rawQuery": "compute halo table to store on each worker"
+    }
