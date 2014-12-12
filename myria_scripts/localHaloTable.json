@@ -39,8 +39,11 @@
                                 }
                             }
                         ]
+
                     }
-                ],
-                "logicalRa": "compute partial halo table per worker",
-                "rawQuery": "compute partial halo table per worker"
+            ]
+        }
+    ],
+    "logicalRa": "compute partial halo table per worker",
+    "rawQuery": "compute partial halo table per worker"
 }
