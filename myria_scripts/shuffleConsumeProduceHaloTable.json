@@ -10,7 +10,7 @@
                         "userName": "public",
                         "relationName": "localHaloTable",
                         "programName": "vulcan"
-                    },
+                    }
                 },
                 {
                     "argChild": 1,
@@ -40,6 +40,7 @@
                     "opType": "MultiGroupByAggregate",
                     "opName": "AggregateConsume",
                     "argChild": 3,
+                    "opId":4,
                     "aggregators": [
                         {
                             "column": 3,
@@ -98,7 +99,7 @@
                             "right": {
                                 "valueType": "LONG_TYPE",
                                 "type": "CONSTANT",
-                                "value": "2"
+                                "value": "1991100000000000"
                                 },
                             "type": "TIMES",
                             "left": {
@@ -124,14 +125,15 @@
                     ],
                     "opName": "ApplyMassConversion",
                     "opType": "Apply",
-                    "opId": 4,
-                    "argChild": 3
+                    "opId": 5,
+                    "argChild": 4
                 },
                 {
                     "opType": "DbInsert",
                     "opName": "Insert",
                     "argOverwriteTable": true,
-                    "argChild": 4,
+                    "argChild": 5,
+                    "opId": 6,
                     "relationKey": {
                         "programName": "vulcan",
                         "relationName": "haloTable",
