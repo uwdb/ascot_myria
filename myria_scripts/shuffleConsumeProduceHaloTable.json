@@ -70,10 +70,68 @@
                     ]
                 },
                 {
+                    "emitExpressions": [
+                        {
+                        "outputName": "nowGroup",
+                        "rootExpressionOperator": {
+                            "type": "VARIABLE",
+                            "columnIdx": 0
+                            }
+                        },
+                        {
+                        "outputName": "grpID",
+                        "rootExpressionOperator": {
+                            "type": "VARIABLE",
+                            "columnIdx": 1
+                            }
+                        },
+                        {
+                        "outputName": "timeStep",
+                        "rootExpressionOperator": {
+                            "type": "VARIABLE",
+                            "columnIdx": 2
+                            }
+                        },
+                        {
+                        "outputName": "mass",
+                        "rootExpressionOperator": {
+                            "right": {
+                                "valueType": "LONG_TYPE",
+                                "type": "CONSTANT",
+                                "value": "2"
+                                },
+                            "type": "TIMES",
+                            "left": {
+                                "type": "VARIABLE",
+                                "columnIdx": 3
+                                }
+                            }
+                        },
+                        {
+                        "outputName": "totalParticles",
+                        "rootExpressionOperator": {
+                            "type": "VARIABLE",
+                            "columnIdx": 4
+                            }
+                        },
+                        {
+                        "outputName": "HI",
+                        "rootExpressionOperator": {
+                            "type": "VARIABLE",
+                            "columnIdx": 5
+                            }
+                        }
+                    ],
+                    "opName": "ApplyMassConversion",
+                    "opType": "Apply",
+                    "opId": 4,
+                    "argChild": 3
+                },
+                {
                     "opType": "DbInsert",
                     "opName": "Insert",
                     "argOverwriteTable": true,
-                    "argChild": 3,
+                    "argChild": 4,
                     "relationKey": {
                         "programName": "vulcan",
                         "relationName": "haloTable",
