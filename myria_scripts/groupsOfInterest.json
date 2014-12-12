@@ -9,8 +9,8 @@
                     "schema": {
                          "columnNames": [
                             "nowGroup",
-                            "timestep",
-                            "grpID"
+                            "grpID",
+                            "timestep"
                         ],
                         "columnTypes": [
                             "INT_TYPE",
