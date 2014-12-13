@@ -40,5 +40,7 @@
                 }
             ]
         }
-    ]
+    ],
+    "logicalRa": "localHaloTable",
+    "rawQuery": "localHaloTable"
 }
