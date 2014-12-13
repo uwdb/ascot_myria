@@ -145,4 +145,4 @@
     ],
     "logicalRa": "compute halo table to store on each worker",
     "rawQuery": "compute halo table to store on each worker"
-    }
+}
