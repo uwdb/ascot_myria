@@ -13,8 +13,8 @@ I = [1 as i];
 
 do
     delta = [from edges as e1, edgesInit as e2, I
-        emit e2.nowGroup, e2.timeStep, e2.currentGroup, e2.nextGroup, e2.sharedParticleCount
-        where e1.nextGroup = e2.curentGroup and e1.currentTime+1 = e2.currentTime and e1.currentTime = I.i and e1.nowGroup = e2.nowGroup];
+        where e1.nextGroup = e2.currentGroup and e1.currentTime+1 = e2.currentTime and e1.currentTime = I.i and e1.nowGroup = e2.nowGroup
+        emit e2.nowGroup, e2.timeStep, e2.currentGroup, e2.nextGroup, e2.sharedParticleCount];
     edges = unionall(delta, edges);
     I = [from I emit i+1 as i];
 while [from I emit min(i) < 7];
