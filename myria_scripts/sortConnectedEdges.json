@@ -5,7 +5,7 @@
                 {
                     "opName": "Scan",
                     "opType": "TableScan",
-                    "opId": 0,
+                    "opId": 1,
                     "relationKey": {
                         "userName": "public",
                         "relationName": "edgesConnected",
@@ -87,7 +87,7 @@
                     "argSortColumns": [
                         0,
                         1,
-                        2,
+                        3,
                         4
                     ],
                     "argAscending": [
@@ -99,10 +99,10 @@
                 },
                 {
                     "opType": "DbInsert",
-                    "argChild": 6,
+                    "argChild": 5,
                     "opName": "Store",
                     "argOverwriteTable": true,
-                    "opId": 5,
+                    "opId": 6,
                     "relationKey": {
                         "userName": "public",
                         "relationName": "edgesConnectedSplitSort",
@@ -111,5 +111,7 @@
                 }
             ]
         }
-    ]
+    ],      
+    "logicalRa": "sort",
+    "rawQuery": "sort"
 }

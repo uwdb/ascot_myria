@@ -13,9 +13,9 @@ I = [1 as i];
 
 do
     delta = [from edges as e1, edgesInit as e2, I
-        where e1.nextGroup = e2.currentGroup and e1.currentTime+1 = e2.currentTime and e1.currentTime = I.i and e1.nowGroup = e2.nowGroup
-        emit e2.nowGroup, e2.timeStep, e2.currentGroup, e2.nextGroup, e2.sharedParticleCount];
-    edges = unionall(delta, edges);
+        where e1.nextGroup = e2.currentGroup and e1.currentTime+1 = e2.currentTime and e1.currentTime = int(I.i) and e1.nowGroup = e2.nowGroup
+        emit e2.nowGroup, e2.currentTime, e2.currentGroup, e2.nextGroup, e2.sharedParticleCount];
+    edges = distinct(delta + edges);
     I = [from I emit i+1 as i];
 while [from I emit min(i) < 7];
 store(edges, public:vulcan:edgesConnected);
@@ -30,6 +30,19 @@ apply RunningRank(haloGrp)
 };
 
 rankedEdges = [from scan(public:vulcan:edgesConnectedSplitSort) as e emit e.nowGroup, e.currentTime, RunningRank(e.currentGroup) as splitOrder, e.currentGroup, e.nextGroup, e.sharedParticleCount];
+edges = [from rankedEdges where splitOrder = 1 emit *];
+store(edges, public:vulcan:edgesTree);
+
+---real query
+
+apply RunningRank(haloGrp)
+{
+    [0 as _rank, 0 as _grp];
+    [case when haloGrp = _grp then _rank + 1 else 1 end, case when haloGrp = _grp then _grp else haloGrp end];
+    _rank;
+};
+
+rankedEdges = [from scan(public:vulcan:edgesConnectedSplitSort) as e emit e.nowGroup, e.currentTime,  RunningRank(e.nextGroup) as splitOrder, e.currentGroup, e.nextGroup, e.sharedParticleCount];
 edges = [from rankedEdges where splitOrder = 1 emit *];
 store(edges, public:vulcan:edgesTree);
 
