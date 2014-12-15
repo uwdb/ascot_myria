@@ -71,13 +71,13 @@ textboxMassRatio.value = massRatioHighlight;
 var tip_n = d3.tip()
   .attr("class", "d3-tip")
   .direction("n")
-  .offset(function(d) { return [-(zoom.scale()-1)*(massScale(+d.HaloMass)+3),0]; })
+  .offset(function(d) { return [-(zoom.scale()-1)*(massScale(+d.haloMass)+3),0]; })
   .html(function(d) { return tipHtml(d) });
 
 var tip_s = d3.tip()
   .attr("class", "d3-tip")
   .direction("s")
-  .offset(function(d) { return [-(zoom.scale()-1)*(massScale(+d.HaloMass)+3),0]; })
+  .offset(function(d) { return [-(zoom.scale()-1)*(massScale(+d.haloMass)+3),0]; })
   .html(function(d) { return tipHtml(d) });
 
 var tip_e = d3.tip()
@@ -206,31 +206,69 @@ var dataBinParticleAllHalos = [];
 //d3.csv("./../d3/times.csv", function(error1, raw_times) {
 //d3.csv("./../d3/similarities.csv", function(error2, raw_sims) {
 //CREATE DATA DEPENDENT VARIABLES
-//console.log(raw_links, raw_nodes, raw_times);
+//change keys of data to match what is in vis
+// var i;
+var givenAttrsNodes = Object.getOwnPropertyNames(raw_nodes[0]);
+var givenAttrsLinks = Object.getOwnPropertyNames(raw_links[0]);
+//variable names we use in program
+var attrsNodesMap = {
+    "GrpId": "grpID",
+    "Timestep": "timeStep",
+    "NowGroup": "nowGroup",
+    "HaloMass": "haloMass",
+    "TotalParticles": "totalParticles",
+    "MassRatio": "massRatio",
+    "Prog": "prog"};
+var attrsLinksMap = {
+    "NowGroup": "nowGroup",
+    "CurrentTime": "currentTime",
+    "CurrentGrp": "currentGroup",
+    "NextGrp": "nextGroup",
+    "SharedParticleCount": "sharedParticleCount"};
+//change variable names to match what we use and remove ones we don't
+for(i = 0; i < raw_nodes.length; i++){
+    for(j = 0; j < givenAttrsNodes.length; j++) {
+        if (attrsNodesMap[givenAttrsNodes[j]]) {
+            raw_nodes[i][attrsNodesMap[givenAttrsNodes[j]]] = raw_nodes[i][givenAttrsNodes[j]];
+        }
+        delete raw_nodes[i][givenAttrsNodes[j]]; 
+    }
+    raw_nodes[i].haloID = raw_nodes[i].timeStep + "-" + raw_nodes[i].grpID;   
+}
+for(i = 0; i < raw_links.length; i++){
+    for(j = 0; j < givenAttrsLinks.length; j++) {
+        if (attrsLinksMap[givenAttrsLinks[j]]) {
+            raw_links[i][attrsLinksMap[givenAttrsLinks[j]]] = raw_links[i][givenAttrsLinks[j]];
+        }
+        delete raw_links[i][givenAttrsLinks[j]]; 
+    }
+    raw_links[i].currentHalo = raw_links[i].currentTime + "-" + raw_links[i].currentGroup; 
+    raw_links[i].nextHalo = (+raw_links[i].currentTime+1) + "-" + raw_links[i].nextGroup;   
+}
 var maxSharedParticle = 0, minSharedParticle;
 var haloMassValuesLog = [], haloParticleValuesLog = [];
-minMass = raw_nodes[0].HaloMass;
-minParticle = raw_nodes[0].TotalParticles;
-minSharedParticle = raw_links[0].SharedParticlesCount;
+minMass = raw_nodes[0].haloMass;
+minParticle = raw_nodes[0].totalParticles;
+minSharedParticle = raw_links[0].sharedParticleCount;
 //LUMINOSITYminLum = raw_nodes[0].lum;
 //LUMINOSITYmaxLum = raw_nodes[0].lum;
 timeMap = d3.nest().key(function(d) { return d.db }).map(raw_times, d3.map);
 
 raw_links.forEach(function(d) {
-    maxSharedParticle = Math.max(maxSharedParticle, +d.SharedParticlesCount);
-    minSharedParticle = Math.min(minSharedParticle, +d.SharedParticlesCount);
+    maxSharedParticle = Math.max(maxSharedParticle, +d.sharedParticleCount);
+    minSharedParticle = Math.min(minSharedParticle, +d.sharedParticleCount);
 });
 
 raw_nodes.forEach(function(d){
-    maxTime = Math.max(maxTime, +d.Timestep);
-    maxMass = Math.max(maxMass, +d.HaloMass);
-    minMass = Math.min(minMass, +d.HaloMass);
-    maxParticle = Math.max(maxParticle, +d.TotalParticles);
-    minParticle = Math.min(minParticle, +d.TotalParticles);
+    maxTime = Math.max(maxTime, +d.timeStep);
+    maxMass = Math.max(maxMass, +d.haloMass);
+    minMass = Math.min(minMass, +d.haloMass);
+    maxParticle = Math.max(maxParticle, +d.totalParticles);
+    minParticle = Math.min(minParticle, +d.totalParticles);
     //LUMINOSITYminLum = Math.min(minLum, +d.lum);
     //LUMINOSITYmaxLum = Math.max(maxLum, +d.lum);
-    haloMassValuesLog.push(+getBaseLog(10, d.HaloMass));
-    haloParticleValuesLog.push(+getBaseLog(10, d.TotalParticles));
+    haloMassValuesLog.push(+getBaseLog(10, d.haloMass));
+    haloParticleValuesLog.push(+getBaseLog(10, d.totalParticles));
     //LUMINOSITYhaloLums.push(+d.lum);
 });
 //scale to fit all timesteps
@@ -270,56 +308,54 @@ yaxislabel.append("text")
 
 //CREATE HALO TREE MAPS
 //basically makes an associative array but it's called a d3.map
-//for each HaloID key, had an array of nodes with that key
+//for each haloID key, had an array of nodes with that key
 //each array will be of length one
 haloMap = d3.map();
 //** SIMvar similaritiesMap = d3.nest().key(function(d) { return d.from_Group; }).map(raw_sims, d3.map);
-var tempHaloNodesMap = d3.nest().key(function(d) { return d.NowGroup; }).map(raw_nodes, d3.map);
-var tempHaloLinksMap = d3.nest().key(function(d) { return d.NowGroup; }).map(raw_links, d3.map);
-
+var tempHaloNodesMap = d3.nest().key(function(d) { return d.nowGroup; }).map(raw_nodes, d3.map);
+var tempHaloLinksMap = d3.nest().key(function(d) { return d.nowGroup; }).map(raw_links, d3.map);
 var tempNodesMap, tempLinksMap, tempRoot;
 tempHaloNodesMap.forEach(function(k, v) {
-    tempNodesMap = d3.nest().key(function(d) { return d.HaloID; }).map(v, d3.map);
-    tempLinksMap = d3.nest().key(function(d) { return d.NextHalo; }).map(tempHaloLinksMap.get(k), d3.map);
-
+    tempNodesMap = d3.nest().key(function(d) { return d.haloID; }).map(v, d3.map);
+    tempLinksMap = d3.nest().key(function(d) { return d.nextHalo; }).map(tempHaloLinksMap.get(k), d3.map);
     //make tree structure from links
     tempHaloLinksMap.get(k).forEach(function(link) {
         //nodesMap array for each key has only one element
-        var parent = tempNodesMap.get(link.CurrentHalo)[0];
-        var child = tempNodesMap.get(link.NextHalo)[0];
+        var parent = tempNodesMap.get(link.currentHalo)[0];
+        var child = tempNodesMap.get(link.nextHalo)[0];
         if (parent.children) {
             parent.children.push(child);
         } else {
             parent.children = [child];
         }
     });
-    tempRoot = tempNodesMap.get(tempHaloLinksMap.get(k)[0].NowHalo)[0];
+    //root is the node at timestep 1
+    tempRoot = tempNodesMap.get("1-"+tempNodesMap.values()[0][0].nowGroup)[0];
     tempRoot.x0 = height/2;
     tempRoot.y0 = 0;
     haloMap.set(k, {root: tempRoot, nodes: tempNodesMap, links: tempLinksMap});
     // similarities: similaritiesMap.get(k)
 });
-//console.log(haloMap);
 //default group
 var halo = haloMap.get(selectedGroup);
 console.log(halo);
 root = halo.root;
 nodesMap = halo.nodes;
 linksMap = halo.links;
-haloMassValuesCurrentHalo = [], haloParticleValuesCurrentHalo = [];
+console.log(nodesMap, linksMap);
+haloMassValuescurrentHalo = [], haloParticleValuescurrentHalo = [];
 minMassC = maxMass;
 maxMassC = 0;
 minParticleC = maxParticle;
 maxParticleC = 0;
 
 nodesMap.values().forEach(function(d) {
-    haloMassValuesCurrentHalo.push(+getBaseLog(10, d[0].HaloMass))
-    haloParticleValuesCurrentHalo.push(+getBaseLog(10, d[0].TotalParticles));
-    minMassC = Math.min(minMassC, +d[0].HaloMass);
-    maxMassC = Math.max(maxMassC, +d[0].HaloMass);
-    minParticleC = Math.min(minParticleC, +d[0].TotalParticles);
-    maxParticleC = Math.max(maxParticleC, +d[0].TotalParticles);
-    
+    haloMassValuescurrentHalo.push(+getBaseLog(10, d[0].haloMass))
+    haloParticleValuescurrentHalo.push(+getBaseLog(10, d[0].totalParticles));
+    minMassC = Math.min(minMassC, +d[0].haloMass);
+    maxMassC = Math.max(maxMassC, +d[0].haloMass);
+    minParticleC = Math.min(minParticleC, +d[0].totalParticles);
+    maxParticleC = Math.max(maxParticleC, +d[0].totalParticles);
 });
 x.domain([getBaseLog(10,minMass), getBaseLog(10, maxMass)]);
 xParticle.domain([getBaseLog(10, minParticle), getBaseLog(10, maxParticle)]);
@@ -333,14 +369,14 @@ temp.x = +getBaseLog(10, maxMassC);
 temp.y = 0;
 dataBinMassAllHalos.push(temp);
 
-var dataBinMassCurrentHalo = d3.layout.histogram()
-.bins(20)(haloMassValuesCurrentHalo);
+var dataBinMasscurrentHalo = d3.layout.histogram()
+.bins(20)(haloMassValuescurrentHalo);
 
-dataBinMassCurrentHalo.push(temp);
+dataBinMasscurrentHalo.push(temp);
 temp = []; 
 temp.x = +getBaseLog(10, minMassC);
 temp.y = 0;
-dataBinMassCurrentHalo.unshift(temp);
+dataBinMasscurrentHalo.unshift(temp);
 
 dataBinParticleAllHalos = d3.layout.histogram()
 .bins(20)(haloParticleValuesLog);
@@ -351,16 +387,16 @@ temp.x = +getBaseLog(10, maxParticleC);
 temp.y = 0;
 dataBinParticleAllHalos.push(temp);
 
-var dataBinParticleCurrentHalo = d3.layout.histogram()
-.bins(20)(haloParticleValuesCurrentHalo);
+var dataBinParticlecurrentHalo = d3.layout.histogram()
+.bins(20)(haloParticleValuescurrentHalo);
 
-dataBinParticleCurrentHalo.push(temp);
+dataBinParticlecurrentHalo.push(temp);
 
 temp = [];
 
 temp.x = +getBaseLog(10, minParticleC);
 temp.y = 0;
-dataBinParticleCurrentHalo.unshift(temp);
+dataBinParticlecurrentHalo.unshift(temp);
 
 arrayMeans = [];
 var currentmean = 0;
@@ -370,8 +406,8 @@ dataBinMassAllHalos.forEach(function(d) { d.y = d.y/haloMap.keys().length; });
 dataBinParticleAllHalos.forEach(function(d) { d.y = d.y/haloMap.keys().length; });
 
 //set y domains based on bin values
-y.domain([0, d3.max(dataBinMassCurrentHalo, function(d) { return d.y; })]);
-yParticle.domain([0, d3.max(dataBinParticleCurrentHalo, function(d) { return d.y; })]);
+y.domain([0, d3.max(dataBinMasscurrentHalo, function(d) { return d.y; })]);
+yParticle.domain([0, d3.max(dataBinParticlecurrentHalo, function(d) { return d.y; })]);
 //tie context to area
 // contextMass.append("path")
 //     .datum(dataBinMassAllHalos)
@@ -380,7 +416,7 @@ yParticle.domain([0, d3.max(dataBinParticleCurrentHalo, function(d) { return d.y
 //     .style("opacity", ".7");
             
 contextMass.append("path")
-    .datum(dataBinMassCurrentHalo)
+    .datum(dataBinMasscurrentHalo)
     .attr("class", "areaTop")
     .attr("d", area)
     .style("opacity", ".9");
@@ -392,7 +428,7 @@ contextMass.append("path")
 //     .style("opacity", ".7");
     
 contextParticle.append("path")
-    .datum(dataBinParticleCurrentHalo)
+    .datum(dataBinParticlecurrentHalo)
     .attr("class", "areaTop")
     .attr("d", areaParticle)
     .style("opacity", ".9");
@@ -494,7 +530,7 @@ function update(source) {
 
     // Update the nodes…
     var node = graph.selectAll("g.node") //all the nodes
-        .data(nodes, function(d, i) { return d.HaloID; });
+        .data(nodes, function(d, i) { return d.haloID; });
 
     //enter any new nodes at the parent's previous position.
     var nodeEnter = node.enter().append("g")
@@ -572,14 +608,14 @@ function update(source) {
         .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
 
     nodeUpdate.select("circle.visible")
-        .attr("r", function(d) { return massScale(+d.HaloMass); })
-        .style("stroke", function(d) {return ((1.0 <= +d.MassRatio && +d.MassRatio <= massRatioHighlight) ? "#FFB31A" : (d.Prog==1 ? "#D44848" : "lightsteelblue")); }) //chooses the color of the nodes based on if they are a progenitor
+        .attr("r", function(d) { return massScale(+d.haloMass); })
+        .style("stroke", function(d) {return ((1.0 <= +d.massRatio && +d.massRatio <= massRatioHighlight) ? "#FFB31A" : (d.prog==1 ? "#D44848" : "lightsteelblue")); }) //chooses the color of the nodes based on if they are a progenitor
         .style("stroke-width", "2")
         .style("opacity", "1");
     nodeUpdate.select("circle.shadow")
         .attr("r", function(d)
             {
-             var scaledMass = massScale(+d.HaloMass);
+             var scaledMass = massScale(+d.haloMass);
              switch(true)
              {
                 case (scaledMass <= 4): return scaledMass+5;
@@ -593,17 +629,17 @@ function update(source) {
         
     nodeUpdate.select("circle.hover")
         .attr("r", function(d){
-            if(massScale(+d.HaloMass) < 6) {
+            if(massScale(+d.haloMass) < 6) {
                 return 6;
             } else {
-                return massScale(+d.HaloMass);
+                return massScale(+d.haloMass);
             }
             });
     
     nodeUpdate.select("path.children")
         .style("fill-opacity", function(d) { return d._children ? 0.7 : 1e-6; })
         .attr("d", function(d) {
-            var r = massScale(+d.HaloMass)+2; //2 for stroke width
+            var r = massScale(+d.haloMass)+2; //2 for stroke width
             var p = 10;
             var str = "M " + r + " -" + p + " L " + r + " " + p + " L " + (1.5*p+r) + " 0 z";
             return str;
@@ -621,15 +657,15 @@ function update(source) {
     
     // nodeUpdate.selectAll("circle.shadow")
     //     .filter(function (d){
-    //           if((+d.HaloMass >= brushExtentMin) && (+d.HaloMass <= brushExtentMax))
+    //           if((+d.haloMass >= brushExtentMin) && (+d.haloMass <= brushExtentMax))
     //           {
     //              otherCount = otherCount + 1;
     //           }
             
     //         if(
-    //            (!brushMass.empty() && brushParticle.empty() && ((+d.HaloMass >= brushExtentMin) && (+d.HaloMass <= brushExtentMax))) || //mass brush and conditions
-    //            (brushMass.empty() && !brushParticle.empty()  && ((d.TotalParticles >= brushExtentMinP) && (d.TotalParticles <= brushExtentMaxP))) || //particle brush and conditions
-    //            (((+d.HaloMass >= brushExtentMin) && (+d.HaloMass <= brushExtentMax)) && ((d.TotalParticles >= brushExtentMinP) && (d.TotalParticles <= brushExtentMaxP)))) //both selected
+    //            (!brushMass.empty() && brushParticle.empty() && ((+d.haloMass >= brushExtentMin) && (+d.haloMass <= brushExtentMax))) || //mass brush and conditions
+    //            (brushMass.empty() && !brushParticle.empty()  && ((d.totalParticles >= brushExtentMinP) && (d.totalParticles <= brushExtentMaxP))) || //particle brush and conditions
+    //            (((+d.haloMass >= brushExtentMin) && (+d.haloMass <= brushExtentMax)) && ((d.totalParticles >= brushExtentMinP) && (d.totalParticles <= brushExtentMaxP)))) //both selected
     //            {
     //              counterHaloSelected = counterHaloSelected + 1;
     //              return d;
@@ -666,7 +702,7 @@ function update(source) {
 
     //update the links…
     var link = graph.selectAll("path.link")
-        .data(links, function(d) { return d.target.HaloID; });
+        .data(links, function(d) { return d.target.haloID; });
 
     //enter any new links at the parent's previous position.
     link.enter().insert("path", "g")
@@ -682,7 +718,7 @@ function update(source) {
         .attr("d", function(d) {
             return diagonal(d);
         })
-        .style("stroke-width", function(d) { return linkScale(+linksMap.get(d.target.HaloID)[0].SharedParticlesCount); })
+        .style("stroke-width", function(d) { return linkScale(+linksMap.get(d.target.haloID)[0].sharedParticleCount); })
         .style("opacity","0.4")
         .style("stroke-linecap", "round"); //can be butt or square
 
@@ -751,9 +787,9 @@ function updateBrushSelected() {
     var brushExtentMinP = Math.pow(10,brushParticle.extent()[0]);
     var brushExtentMaxP = Math.pow(10,brushParticle.extent()[1]);
     function toggleSelect(d) {
-        if((!brushMass.empty() && brushParticle.empty() && ((+d.HaloMass >= brushExtentMin) && (+d.HaloMass <= brushExtentMax))) || //mass brush and conditions
-        (brushMass.empty() && !brushParticle.empty()  && ((d.TotalParticles >= brushExtentMinP) && (d.TotalParticles <= brushExtentMaxP))) || //particle brush and conditions
-        (((+d.HaloMass >= brushExtentMin) && (+d.HaloMass <= brushExtentMax)) && ((d.TotalParticles >= brushExtentMinP) && (d.TotalParticles <= brushExtentMaxP)))) //both selected
+        if((!brushMass.empty() && brushParticle.empty() && ((+d.haloMass >= brushExtentMin) && (+d.haloMass <= brushExtentMax))) || //mass brush and conditions
+        (brushMass.empty() && !brushParticle.empty()  && ((d.totalParticles >= brushExtentMinP) && (d.totalParticles <= brushExtentMaxP))) || //particle brush and conditions
+        (((+d.haloMass >= brushExtentMin) && (+d.haloMass <= brushExtentMax)) && ((d.totalParticles >= brushExtentMinP) && (d.totalParticles <= brushExtentMaxP)))) //both selected
         {
             d.selected = true;
         } else {
@@ -920,44 +956,44 @@ function changeGraph() {
     maxMassC = 0;
     minParticleC = maxParticle;
     maxParticleC = 0;
-    var haloMassValuesCurrentHalo = [], haloParticleValuesCurrentHalo = [];
+    var haloMassValuescurrentHalo = [], haloParticleValuescurrentHalo = [];
     nodesMap.values().forEach(function(d) {
-        haloMassValuesCurrentHalo.push(+getBaseLog(10, d[0].HaloMass))
-        haloParticleValuesCurrentHalo.push(+getBaseLog(10, d[0].TotalParticles));
-        minMassC = Math.min(minMassC, +d[0].HaloMass);
-        maxMassC = Math.max(maxMassC, +d[0].HaloMass);
-        minParticleC = Math.min(minParticleC, +d[0].TotalParticles);
-        maxParticleC = Math.max(maxParticleC, +d[0].TotalParticles);
+        haloMassValuescurrentHalo.push(+getBaseLog(10, d[0].haloMass))
+        haloParticleValuescurrentHalo.push(+getBaseLog(10, d[0].totalParticles));
+        minMassC = Math.min(minMassC, +d[0].haloMass);
+        maxMassC = Math.max(maxMassC, +d[0].haloMass);
+        minParticleC = Math.min(minParticleC, +d[0].totalParticles);
+        maxParticleC = Math.max(maxParticleC, +d[0].totalParticles);
           
     });
     
-    var dataBinMassCurrentHalo = d3.layout.histogram()
-        .bins(20)(haloMassValuesCurrentHalo);
-    var dataBinParticleCurrentHalo = d3.layout.histogram()
-        .bins(20)(haloParticleValuesCurrentHalo);
+    var dataBinMasscurrentHalo = d3.layout.histogram()
+        .bins(20)(haloMassValuescurrentHalo);
+    var dataBinParticlecurrentHalo = d3.layout.histogram()
+        .bins(20)(haloParticleValuescurrentHalo);
 
     var temp = [];
     temp.x = +getBaseLog(10, maxMassC);
     temp.y = 0;
-    dataBinMassCurrentHalo.push(temp);
+    dataBinMasscurrentHalo.push(temp);
 
     temp = [];
     temp.x = +getBaseLog(10, minMassC);
     temp.y = 0;
-    dataBinMassCurrentHalo.unshift(temp);
+    dataBinMasscurrentHalo.unshift(temp);
 
     temp = [];
     temp.x = +getBaseLog(10, maxParticleC);
     temp.y = 0;
-    dataBinParticleCurrentHalo.push(temp);
+    dataBinParticlecurrentHalo.push(temp);
 
     temp = [];
     temp.x = +getBaseLog(10, minParticleC);
     temp.y = 0;
-    dataBinParticleCurrentHalo.unshift(temp);
+    dataBinParticlecurrentHalo.unshift(temp);
     
-    y.domain([0, d3.max(dataBinMassCurrentHalo, function(d) { return d.y; })]);
-   yParticle.domain([0, d3.max(dataBinParticleCurrentHalo, function(d) { return d.y; })]);
+    y.domain([0, d3.max(dataBinMasscurrentHalo, function(d) { return d.y; })]);
+   yParticle.domain([0, d3.max(dataBinParticlecurrentHalo, function(d) { return d.y; })]);
     
     d3.selectAll(".brushyaxis .tick").remove();
     
@@ -987,14 +1023,14 @@ function changeGraph() {
         .call(yAxisParticle);
     
     contextMass.select(".areaTop")
-        .datum(dataBinMassCurrentHalo)
+        .datum(dataBinMasscurrentHalo)
         .transition()
         .duration(duration)
         .attr("d", area)
         .style("opacity", ".9");
 
     contextParticle.select(".areaTop")
-        .datum(dataBinParticleCurrentHalo)
+        .datum(dataBinParticlecurrentHalo)
         .transition()
         .duration(duration)
         .attr("d", areaParticle)
@@ -1037,25 +1073,25 @@ function resetTree() {
 }
 
 function download() {
-    var data = "GrpID,Time(gyr),Mass\n";
+    var data = "grpID,Time(gyr),Mass\n";
     function buildHaloString(d) {
         if (d.selected) {
-            data += [d.GrpID,timeMap.get(d.Timestep)[0].time,d.HaloMass].join(',') + "\n";
+            data += [d.grpID,timeMap.get(d.timeStep)[0].time,d.haloMass].join(',') + "\n";
         }
         if (d.children) {
             d.children.forEach(function(f) {buildHaloString(f);});
         }
     }
     buildHaloString(root);
-    var data2 = "Timestep,ChildGrp,DescendantGrp,SharedParticleCount,SharedDarkParticleCount\n";
+    var data2 = "timeStep,ChildGrp,DescendantGrp,SharedParticleCount,SharedDarkParticleCount\n";
     function buildEdgeString(d) {
         if (d.children) {
             if (d.selected) {
                 d.children.forEach(
                     function(f) {
                         if (f.selected) {
-                            edgeData = linksMap.get(f.HaloID)[0]
-                            data2 += [timeMap.get(edgeData.CurrentTime)[0].time,edgeData.CurrentGrp,edgeData.NextGrp,edgeData.SharedParticleCount,edgeData.SharedDarkParticleCount].join(',') + "\n";
+                            edgeData = linksMap.get(f.haloID)[0]
+                            data2 += [timeMap.get(edgeData.currentTime)[0].time,edgeData.currentGroup,edgeData.nextGroup,edgeData.sharedParticleCount].join(',') + "\n";
                         }
                     });
                 }
@@ -1273,24 +1309,16 @@ function toggleLuminosity() {
 
 function tipHtml(d) {
     var color = "black";
-    return "Halo Group: <span style='color:" + color +"'>"  + d.GrpID + "</span><br/>" 
-          + "Halo Mass: <span style='color:" + color +"'>" + (+d.HaloMass).toExponential(3) + "</span><br/>" 
-          + "Total Particles: <span style='color:" + color +"'>" + d.TotalParticles + "</span><br/>"
-          + "Total Dark Particles: <span style='color:" + color +"'>" + d.TotalDarkParticles + "</span><br/>";
-         // + "Total Luminosity: <span style='color:" + color +"'>" + (+d.lum).toExponential(3) + "</span><br/>";
-    // return "Halo Group: <span style='color:" + color +"'>"  + d.GrpID + "</span><br/>" 
-    //       + "Total Mass: <span style='color:" + color +"'>" + (+d.HaloMass).toExponential(3) + "</span><br/>" 
-    //       + "Stelar Mass: <span style='color:" + color +"'>" + d.StelarMass + "</span><br/>"
-    //       + "Total Particles: <span style='color:" + color +"'>" + d.TotalParticles + "</span><br/>"
-    //       + "Gas Mass: <span style='color:" + color +"'>" + d.GasMass + "</span><br/>"
-    //       + "Luminosity: <span style='color:" + color +"'>" + (+d.lum).toExponential(3) + "</span><br/>";
+    return "Halo Group: <span style='color:" + color +"'>"  + d.grpID + "</span><br/>" 
+          + "Halo Mass: <span style='color:" + color +"'>" + (+d.haloMass).toExponential(3) + "</span><br/>" 
+          + "Total Particles: <span style='color:" + color +"'>" + d.totalParticles + "</span><br/>";
 }
 
 function textBoxGroupEnter() {
     var val = document.getElementById("textBoxGroup").value;
     if (val && haloMap.keys().indexOf(val) == -1) {
         alert("That group is not in this data");
-    } else if(val != root.GrpID) {
+    } else if(val != root.grpID) {
         changeTree(val);
     }
 }
@@ -1303,7 +1331,7 @@ function createThumb(d, i) {
 }
 
 function populateSlider() {
-    var curGrp = root.GrpID;
+    var curGrp = root.grpID;
     var similarities = haloMap.get(curGrp).similarities;
     current = similarities[0];
     similarities = similarities.slice(1,similarities.length);
@@ -1376,7 +1404,7 @@ function populateSlider() {
 }
 
 function changeSlider() {
-    var curGrp = root.GrpID;
+    var curGrp = root.grpID;
     var similarities = haloMap.get(curGrp).similarities;
     current = similarities[0];
     similarities = similarities.slice(1,similarities.length);
