@@ -43,7 +43,7 @@ labelNonProg = [from findNonProg as f emit f.*, 0 as prog];
 --LAUREL: do you need the distinct?
 
 --JEN: I don't think so either, I got rid of it now
-haloTableNew = distinct(labelProg + labelNonProg);
+haloTableNew = labelProg + labelNonProg;
 
 final = [from haloTableNew emit *, -1 as massRatio];
 
