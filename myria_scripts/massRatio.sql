@@ -1,7 +1,7 @@
 --nowGroup, grpID, timeStep, mass, totalParticles, HI, prog, massRatio
 
 --add the creation of edgeswithMass in json
---use sortMassDesc.json to join haloTableProg with edgesTree to sort the edges for each nowGroup, currentTime, currentGroup by nextHalo mass descending
+--use sortByChildMass.json to join haloTableProg with edgesTree to sort the edges for each nowGroup, currentTime, currentGroup by nextHalo mass descending
 
 haloTable = scan(public:vulcan:haloTableProg);
 edges = scan(public:vulcan:edgesWithMassSort);
