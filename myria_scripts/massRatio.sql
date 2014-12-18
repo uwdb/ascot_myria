@@ -1,6 +1,42 @@
 --nowGroup, grpID, timeStep, mass, totalParticles, HI, prog, massRatio
 
+--add the creation of edgeswithMass in json
 --use sortMassDesc.json to join haloTableProg with edgesTree to sort the edges for each nowGroup, currentTime, currentGroup by nextHalo mass descending
+
+haloTable = scan(public:vulcan:haloTableProg);
+edges = scan(public:vulcan:edgesWithMassSort);
+
+apply RunningRank(haloGrp)
+{
+    [0 as _rank, 0 as _grp];
+    [case when haloGrp = _grp then _rank + 1 else 1 end, case when haloGrp = _grp then _grp else haloGrp end];
+    _rank;
+};
+
+rankedEdges = [from scan(public:vulcan:edgesConnectedSplitSort) as e emit e.nowGroup, e.currentTime,  RunningRank(e.currentGroup) as splitOrder, e.currentGroup, e.nextGroup, e.nextGroupMass];
+edges1 = [from rankedEdges where splitOrder = 1 emit *];
+edges2 = [from rankedEdges where splitOrder = 2 emit *];
+bothMaxGroups = [from edges1 e1, edges2 e2
+    where e1.nowGroup = e2.nowGroup and e1.currentTime = e2.currentTime and e1.currentGroup = e2.currentGroup
+    emit e1.nowGroup, e1.currentTime, e1.currentGroup, e1.nextGroup as e1NextGroup, e2.nextGroup as e2NextGroup, e1.nextGroupMass/e2.nextGroupMass as massRatio];
+
+maxMasses1 = [from bothMaxGroups g, haloTable h
+    where h.nowGroup = g.nowGroup and h.grpID = g.e1NextGroup and h.timeStep = g.currentTime+1
+    emit h.nowGroup, h.grpID, h.timeStep, h.mass, h.totalParticles, h.HI, h.prog, g.massRatio as massRatio];
+
+maxMasses2 = [from bothMaxGroups g, haloTable h
+    where h.nowGroup = g.nowGroup and h.grpID = g.e2NextGroup and h.timeStep = g.currentTime+1
+    emit h.nowGroup, h.grpID, h.timeStep, h.mass, h.totalParticles, h.HI, h.prog, g.massRatio as massRatio];
+
+newHaloTable = haloTable + maxMasses1 + maxMasses2;
+
+newHaloTable = [from newHaloTable h
+    emit h.nowGroup, h.grpID, h.timeStep, h.mass, h.totalParticles, h.HI, h.prog, max(h.massRatio)];
+store(edges, public:vulcan:edgesTree);
+
+
+
+--WAY TWO
 
 haloTable = scan(public:vulcan:haloTableProg);
 edges = scan(public:vulcan:edgesTree);
