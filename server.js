@@ -188,6 +188,6 @@ app.get('/myria/getdata', function(req, postResponse){
 });
 
 if (!module.parent) {
-  app.listen(8016);
+  app.listen(8017);
   console.log("ASCOT server listening on port %d", app.address().port);
 }
