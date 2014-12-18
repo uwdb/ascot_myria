@@ -22,31 +22,23 @@ I = [from I emit i+1 as i];
 
 while [from I emit min(i) < 7];
 
---tested up to here
-
-progenitors = [from progenitors emit nowGroup, int(currentTime) as currentTime, currentGroup, nextGroup, sharedParticleCount];
-
 store(progenitors, public:vulcan:progen);
 
---LAUREL: I think you can combine findProg and labelProg as
---labelProg = [from haloTable h, progenitors p where h.nowGroup = p.nowGroup and h.grpID = p.currentgGroup and h.timeStep = int(p.currentTime) emit h.*, 1 as prog]
+progenitors = scan(public:vulcan:progen);
+haloTable = scan(public:adhoc:haloTable);
 
---JEN: but if I combine them, how can I do the diff? I just built findProg so I can easily do the diff against haloTables later
+--JEN: I made this one separately so I can do the diff later
 
-findProg = [from haloTable h, progenitors p where h.nowGroup = p.nowGroup and h.grpID = p.currentGroup and h.timeStep = int(p.currentTime) emit h.*];
+findProg = [from haloTable h, progenitors p where h.nowGroup = p.nowGroup and h.grpID = p.currentGroup and int(h.timeStep) = p.currentTime emit h.*];
 
 labelProg = [from findProg as f emit f.*, 1 as prog];
 
 findNonProg = diff(haloTable,findProg);
 labelNonProg = [from findNonProg as f emit f.*, 0 as prog];
 
---LAUREL: do you need the distinct?
-
---JEN: I don't think so either, I got rid of it now
 haloTableNew = labelProg + labelNonProg;
 
 final = [from haloTableNew emit *, -1 as massRatio];
 
 store(final, public:vulcan:haloTableProg);
-
 
