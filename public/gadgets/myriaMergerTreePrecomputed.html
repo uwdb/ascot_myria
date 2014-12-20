@@ -224,17 +224,18 @@
   //  Use console.log to print stuff to check status
   var MYRIA_QUERY_URL = "/myria/postquery";
   var MYRIA_QUERYSTATUS_URL = "/myria/querystatus"
-  var MYRIA_MQUERYGRP_URL = "/myria/mquerygrp";
   var MYRIA_GETDATA_URL = "/myria/getdata";
-  var MYRIA_MQUERYMERGERGRP_URL = "/myria/mquerymergergrp";
-  var MYRIA_MQUERYMASSMERGER_URL = "/myria/mquerymassmerger";
 
   //Dataset to use
-  var dataset = "public";
+  var defaultUser = "public";
   var program = "vulcan";
   var nodestable = "haloTableProg";
   var edgetable = "edgesTree";
   var massConversion = 18479300000000000.0;
+  var massAttr = "mass";
+  var currentTimeAttr = "currentTime";
+  var timeStepAttr = "timeStep";
+  var nowGroupAttr = "nowGroup";
 
 
 
@@ -302,7 +303,7 @@
           tryGetResult(queryId, queryTypeEnum);
         } else {
           // We are now sending the query to compute the edges table
-          var queryString = _.str.sprintf('T1 = SELECT * FROM scan(%s:%s:%s) as R WHERE R.nowGroup=%s; store(T1, %s:%s:%s);', dataset, program, edgetable, selectedGroup, username, "myMerger"+dataset, "edges");
+          var queryString = _.str.sprintf('T1 = SELECT * FROM scan(%s:%s:%s) as R WHERE R.%s=%s; store(T1, %s:%s:%s);', defaultUser, program, edgetable, nowGroupAttr, selectedGroup, username, "myMerger"+program, "edges");
           sendQueryMyria(queryString, queryType.MERGER_GET_TREE_2);
         }
       });
@@ -313,7 +314,7 @@
           tryGetResult(queryId, queryTypeEnum);
         } else {
             // Now we are geting the resulting nodes table from myria
-            $.get(MYRIA_GETDATA_URL, {user: username, program: "myMerger"+dataset, table: "nodes"}, getSecondMergerTreeQueryResult, 'json');
+            $.get(MYRIA_GETDATA_URL, {user: username, program: "myMerger"+program, table: "nodes"}, getSecondMergerTreeQueryResult, 'json');
           }
         });
       break;
@@ -336,7 +337,7 @@
   // After getting the nodes table we are now getting the computed edges table
   var getSecondMergerTreeQueryResult = function(data) {
     username = document.getElementById('mergerTreeUsername').value;
-    $.get(MYRIA_GETDATA_URL, {user: username, program: "myMerger"+dataset, table: "edges"}, function(res) {
+    $.get(MYRIA_GETDATA_URL, {user: username, program: "myMerger"+program, table: "edges"}, function(res) {
       displayMergerTreeResult(data,res);
     }, 'json');
   }
@@ -352,15 +353,14 @@
     username = document.getElementById('mergerTreeUsername').value;
 
     showVizLoadingIcon(true);
-    var queryString = _.str.sprintf('T1 = SELECT * FROM scan(%s:%s:%s) as R WHERE R.nowGroup=%s; store(T1, %s:%s:%s);', dataset, program, nodestable, selectedGroup, username, "myMerger"+dataset, "nodes");
-    console.log("JS", queryString);
+    var queryString = _.str.sprintf('T1 = SELECT * FROM scan(%s:%s:%s) as R WHERE R.%s=%s; store(T1, %s:%s:%s);', defaultUser, program, nodestable, nowGroupAttr, selectedGroup, username, "myMerger"+program, "nodes");
     sendQueryMyria(queryString, queryType.MERGER_GET_TREE_1);
   };
 
   //This function queries and populates the list of available group ids
   var populateGroupIdMenu = function(tableName) {
     console.log("inside populateGroupIdMenu");
-    $.get(MYRIA_GETDATA_URL, {user: document.getElementById('mergerTreeUsername').value, program: 'myMerger' + dataset, table: tableName}, function(res) {
+    $.get(MYRIA_GETDATA_URL, {user: document.getElementById('mergerTreeUsername').value, program: 'myMerger' + program, table: tableName}, function(res) {
       showGroupLoadingIcon(false);
       document.getElementById("mergerTreeGroups").disabled=false;
 
@@ -381,8 +381,8 @@
         .selectAll("option")
         .data(res)
         .enter().append("option")
-        .attr("value", function(d){ return d.nowGroup; })
-        .text(function(d) { return d.nowGroup; });
+        .attr("value", function(d){ return d[nowGroupAttr]; })
+        .text(function(d) { return d[nowGroupAttr]; });
     });
   };
 
@@ -428,7 +428,7 @@
     console.log("Sending Group Query")
     username = document.getElementById('mergerTreeUsername').value;
 
-    var queryString = _.str.sprintf('T1 = scan(%s:%s:%s); T2 = [from T1 where timeStep = 1 and mass <= %.1f and mass >= %.1f emit nowGroup, mass]; store(T2, %s:myMerger%s:GroupIds);', dataset, program, nodestable, +selectedMaxMassRange, +selectedMinMassRange, username, dataset);
+    var queryString = _.str.sprintf('T1 = scan(%s:%s:%s); T2 = [from T1 where timeStep = 1 and %s <= %.1f and %s >= %.1f emit %s, %s]; store(T2, %s:myMerger%s:GroupIds);', defaultUser, program, nodestable, massAttr, +selectedMaxMassRange, massAttr, +selectedMinMassRange, nowGroupAttr, massAttr, username, program);
     
     console.log("JS", queryString);
     sendQueryMyria(queryString, queryType.MERGER_GET_GROUPS);
@@ -458,11 +458,10 @@
       displayErrorMessage('No result for group ' + selectedGroup + '. Must change computation parameters.');
       return;
     }
-
     data2.sort(function(obj1, obj2) {
-      return obj1.CurrentTime - obj2.CurrentTime});
+      return obj1[currentTimeAttr] - obj2[currentTimeAttr]});
     data1.sort(function(obj1, obj2) {
-      return obj1.TimeStep - obj2.TimeStep;
+      return obj1[timeStepAttr] - obj2[timeStepAttr];
     });
     //displayMergerTree is in d3/interaction_collapse.js
     mergerTree = new displayMergerTree(data2, data1, raw_times, selectedGroup);
@@ -534,7 +533,7 @@
 
   // For drop down results sorting
   function sortNumber(a,b) {
-    return a.NowGroup - b.NowGroup;
+    return a[nowGroupAttr] - b[nowGroupAttr];
   }
 
   var checkDisableGroups = function() {

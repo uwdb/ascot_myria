@@ -212,35 +212,43 @@ var givenAttrsNodes = Object.getOwnPropertyNames(raw_nodes[0]);
 var givenAttrsLinks = Object.getOwnPropertyNames(raw_links[0]);
 //variable names we use in program
 var attrsNodesMap = {
-    "GrpId": "grpID",
-    "Timestep": "timeStep",
-    "NowGroup": "nowGroup",
-    "HaloMass": "mass",
-    "TotalParticles": "totalParticles",
-    "MassRatio": "massRatio",
-    "Prog": "prog"};
+    "grpID": "grpID",
+    "timeStep": "timeStep",
+    "nowGroup": "nowGroup",
+    "mass": "haloMass",
+    "totalParticles": "totalParticles",
+    "massRatio": "massRatio",
+    "prog": "prog"};
 var attrsLinksMap = {
-    "NowGroup": "nowGroup",
-    "CurrentTime": "currentTime",
-    "CurrentGrp": "currentGroup",
-    "NextGrp": "nextGroup",
-    "SharedParticleCount": "sharedParticleCount"};
+    "nowGroup": "nowGroup",
+    "currentTime": "currentTime",
+    "currentGroup": "currentGroup",
+    "nextGroup": "nextGroup",
+    "sharedParticleCount": "sharedParticleCount"};
 //change variable names to match what we use and remove ones we don't
 for(i = 0; i < raw_nodes.length; i++){
     for(j = 0; j < givenAttrsNodes.length; j++) {
         if (attrsNodesMap[givenAttrsNodes[j]]) {
-            raw_nodes[i][attrsNodesMap[givenAttrsNodes[j]]] = raw_nodes[i][givenAttrsNodes[j]];
+            if (attrsNodesMap[givenAttrsNodes[j]] != givenAttrsNodes[j]) {
+                raw_nodes[i][attrsNodesMap[givenAttrsNodes[j]]] = raw_nodes[i][givenAttrsNodes[j]];
+                delete raw_nodes[i][givenAttrsNodes[j]]; 
+            }
+        } else {
+            delete raw_nodes[i][givenAttrsNodes[j]]; 
         }
-        delete raw_nodes[i][givenAttrsNodes[j]]; 
     }
-    raw_nodes[i].haloID = raw_nodes[i].timeStep + "-" + raw_nodes[i].grpID;   
+    raw_nodes[i].haloID = raw_nodes[i].timeStep + "-" + raw_nodes[i].grpID;  
 }
 for(i = 0; i < raw_links.length; i++){
     for(j = 0; j < givenAttrsLinks.length; j++) {
         if (attrsLinksMap[givenAttrsLinks[j]]) {
-            raw_links[i][attrsLinksMap[givenAttrsLinks[j]]] = raw_links[i][givenAttrsLinks[j]];
+            if (attrsLinksMap[givenAttrsLinks[j]] != givenAttrsLinks[j]) {
+                raw_links[i][attrsLinksMap[givenAttrsLinks[j]]] = raw_links[i][givenAttrsLinks[j]];
+                delete raw_links[i][givenAttrsLinks[j]]; 
+            }
+        } else {
+            delete raw_links[i][givenAttrsNodes[j]]; 
         }
-        delete raw_links[i][givenAttrsLinks[j]]; 
     }
     raw_links[i].currentHalo = raw_links[i].currentTime + "-" + raw_links[i].currentGroup; 
     raw_links[i].nextHalo = (+raw_links[i].currentTime+1) + "-" + raw_links[i].nextGroup;   
@@ -524,7 +532,6 @@ function update(source) {
     //compute the new tree layout.
     var nodes = tree.nodes(root);
     var links = tree.links(nodes);
-
     //normalize for fixed-depth.
     nodes.forEach(function(d) { d.y = d.depth * nodeDistance; });
 

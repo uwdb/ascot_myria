@@ -106,10 +106,10 @@
     <script src="d3/interaction_collapse.js"></script>
     <script>
       var mergerTree;
-      d3.csv("d3/links.csv", function(error1, raw_links) {
-      d3.csv("d3/nodes.csv", function(error2, raw_nodes) {
+      d3.csv("d3/links2.csv", function(error1, raw_links) {
+      d3.csv("d3/nodes2.csv", function(error2, raw_nodes) {
       d3.csv("d3/times.csv", function(error1, raw_times) {
-        mergerTree = new displayMergerTree(raw_links, raw_nodes, raw_times, "2");
+        mergerTree = new displayMergerTree(raw_links, raw_nodes, raw_times, "31077");
       });});});
       var updateMassRatio = function() {
         mergerTree.updateMassRatio();
