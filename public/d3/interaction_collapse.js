@@ -215,7 +215,7 @@ var attrsNodesMap = {
     "GrpId": "grpID",
     "Timestep": "timeStep",
     "NowGroup": "nowGroup",
-    "HaloMass": "haloMass",
+    "HaloMass": "mass",
     "TotalParticles": "totalParticles",
     "MassRatio": "massRatio",
     "Prog": "prog"};
