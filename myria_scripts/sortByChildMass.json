@@ -28,7 +28,7 @@
                     },
                     "argBufferStateType": null
                 }
-            ],
+            ]
         },
         {
             "operators": [
@@ -58,7 +58,7 @@
                     },
                     "argBufferStateType": null
                 }
-            ],
+            ]
         },
         {
             "operators": [
@@ -259,6 +259,6 @@
             ]
         }
     ],      
-    "logicalRa": "sort",
-    "rawQuery": "sort"
+    "logicalRa": "child mass sort",
+    "rawQuery": "child mass sort"
 }
