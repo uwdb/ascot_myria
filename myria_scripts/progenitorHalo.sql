@@ -1,5 +1,5 @@
 --nowGroup, currentTime, currentGroup, nextGroup, sharedParticleCount
-edges = scan(public:adhoc:treeEdges);
+edges = scan(public:vulcan:edgesTree);
 
 --the first progenitor
 progenitors = [from edges where currentTime = 1 emit nowGroup, int(currentTime) as currentTime, currentGroup];
@@ -25,7 +25,10 @@ while [from I emit min(i) < 7];
 store(progenitors, public:vulcan:progen);
 
 progenitors = scan(public:vulcan:progen);
-haloTable = scan(public:adhoc:haloTable);
+--gets only halos in tree
+haloTable1 = [from scan(public:vulcan:haloTable) h, edges e where h.nowGroup = e.nowGroup and h.grpID = e.currentGroup and int(h.timeStep) = e.currentTime emit h.*];
+haloTable2 = [from scan(public:vulcan:haloTable) h, edges e where h.nowGroup = e.nowGroup and h.grpID = e.nextGroup and int(h.timeStep) = e.currentTime+1 emit h.*];
+haloTable = distinct(haloTable1 + haloTable2);
 
 --JEN: I made this one separately so I can do the diff later
 

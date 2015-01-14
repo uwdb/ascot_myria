@@ -7,7 +7,7 @@ var clientWidth = 1010;
 var clientHeight = 850;
 var margin = {top: 60, right: 20, bottom: 20, left: 20},
 width = clientWidth - margin.right - margin.left,
-height = 400;
+height = 600;
 //height = Math.max(clientHeight - margin.top - margin.bottom - 420, 400); //panelContentHeight, header, buttons, and padding for header
 d3.select("#panelContent").style("width", clientWidth+"px")
 d3.select("#topContainer").style("width", clientWidth/2 +"px")
@@ -210,7 +210,7 @@ var dataBinParticleAllHalos = [];
 // var i;
 var givenAttrsNodes = Object.getOwnPropertyNames(raw_nodes[0]);
 var givenAttrsLinks = Object.getOwnPropertyNames(raw_links[0]);
-//variable names we use in program
+//variable names in raw data file are values, variable names in javascript are keys
 var attrsNodesMap = {
     "grpID": "grpID",
     "timeStep": "timeStep",
@@ -218,7 +218,8 @@ var attrsNodesMap = {
     "mass": "haloMass",
     "totalParticles": "totalParticles",
     "massRatio": "massRatio",
-    "prog": "prog"};
+    "prog": "prog",
+    "HI": "HI"};
 var attrsLinksMap = {
     "nowGroup": "nowGroup",
     "currentTime": "currentTime",
@@ -1318,7 +1319,9 @@ function tipHtml(d) {
     var color = "black";
     return "Halo Group: <span style='color:" + color +"'>"  + d.grpID + "</span><br/>" 
           + "Halo Mass: <span style='color:" + color +"'>" + (+d.haloMass).toExponential(3) + "</span><br/>" 
-          + "Total Particles: <span style='color:" + color +"'>" + d.totalParticles + "</span><br/>";
+          + "Total Particles: <span style='color:" + color +"'>" + d.totalParticles + "</span><br/>"
+          + "HI: <span style='color:" + color +"'>" + d3.round(+d.HI, 3) + "</span><br/>"
+          + "Merger Mass Ratio It Participated In: <span style='color:" + color +"'>" + d3.round(+d.massRatio, 3) + "</span><br/>";
 }
 
 function textBoxGroupEnter() {

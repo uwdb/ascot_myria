@@ -4,6 +4,7 @@ nowGroups = [from haloTable ht, particleTable pt where ht.nowGroup = pt.nowGroup
 edgesInit = [from particleTable pt1, particleTable pt2, haloTable ht1, haloTable ht2, nowGroups ng
         where pt1.grp = ht1.grpID and pt1.timestep = ht1.timeStep and pt1.iOrder = pt2.iOrder and pt1.iOrder = ng.iOrder and pt2.nowGroup = ht2.nowGroup and pt2.grp = ht2.grpID and pt2.timestep = ht2.timeStep and ht1.timeStep+1 = ht2.timeStep
         emit ng.nowGroup, ht1.timeStep as currentTime, ht1.grpID as currentGroup, ht2.grpID as nextGroup, count(*) as sharedParticleCount];
+-- filter edges on number of particles shared
 edges = [from edgesInit where sharedParticleCount > 256 emit *];
 store(edges, public:vulcan:edgesInitial);
 
@@ -21,23 +22,23 @@ while [from I emit min(i) < 7];
 store(edges, public:vulcan:edgesConnected);
 
 -- use sortConnectedEdges.json to do an in memory sort on nowGroup, currentTime, nextGroup
+-- would like to use this query
+-- apply RunningRank(haloGrp)
+-- {
+--     [0 as _rank, -1 as _grp];
+--     [case when haloGrp = _grp then _rank + 1 else 1 end as _rank, haloGrp as _grp];
+--     _rank;
+-- };
 
-apply RunningRank(haloGrp)
-{
-    [0 as _rank, -1 as _grp];
-    [case when haloGrp = _grp then _rank + 1 else 1 end as _rank, haloGrp as _grp];
-    _rank;
-};
-
-rankedEdges = [from scan(public:vulcan:edgesConnectedSplitSort) as e emit e.nowGroup, e.currentTime, RunningRank(e.currentGroup) as splitOrder, e.currentGroup, e.nextGroup, e.sharedParticleCount];
-edges = [from rankedEdges where splitOrder = 1 emit *];
-store(edges, public:vulcan:edgesTree);
+-- rankedEdges = [from scan(public:vulcan:edgesConnectedSplitSort) as e emit e.nowGroup, e.currentTime, RunningRank(e.currentGroup) as splitOrder, e.currentGroup, e.nextGroup, e.sharedParticleCount];
+-- edges = [from rankedEdges where splitOrder = 1 emit *];
+-- store(edges, public:vulcan:edgesTree);
 
 ---real query
 
 apply RunningRank(haloGrp)
 {
-    [0 as _rank, 0 as _grp];
+    [0 as _rank, -1 as _grp];
     [case when haloGrp = _grp then _rank + 1 else 1 end, case when haloGrp = _grp then _grp else haloGrp end];
     _rank;
 };

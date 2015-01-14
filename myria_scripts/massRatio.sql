@@ -1,7 +1,7 @@
 --nowGroup, grpID, timeStep, mass, totalParticles, HI, prog, massRatio
 
---add the creation of edgeswithMass in json
 --use sortByChildMass.json to join haloTableProg with edgesTree to sort the edges for each nowGroup, currentTime, currentGroup by nextHalo mass descending
+--creation of edgeswithMass is in sortBychildMass.json
 
 apply RunningRank(haloGrp)
 {
@@ -23,11 +23,12 @@ maxMasses1 = [from bothMaxGroups g, haloTable h
     where h.nowGroup = g.nowGroup and h.grpID = g.e1NextGroup and h.timeStep = g.currentTime+1
     emit h.nowGroup, h.grpID, h.timeStep, h.mass, h.totalParticles, h.HI, h.prog, g.massRatio*1.0 as massRatio];
 
-maxMasses2 = [from bothMaxGroups g, maxMasses1 h
+maxMasses2 = [from bothMaxGroups g, haloTable h
     where h.nowGroup = g.nowGroup and h.grpID = g.e2NextGroup and h.timeStep = g.currentTime+1
     emit h.nowGroup, h.grpID, h.timeStep, h.mass, h.totalParticles, h.HI, h.prog, g.massRatio*1.0 as massRatio];
 
 maxMasses = maxMasses1 + maxMasses2;
+--store(maxMasses, ljorr:vulcan:maxMassesTestingJan14);
 
 remainingHalos = diff([from haloTable h emit h.nowGroup, h.grpID, h.timeStep, h.mass, h.totalParticles, h.HI, h.prog], [from maxMasses h emit h.nowGroup, h.grpID, h.timeStep, h.mass, h.totalParticles, h.HI, h.prog]);
 
@@ -35,7 +36,7 @@ remainingHalosMass = [from remainingHalos h emit h.nowGroup, h.grpID, h.timeStep
 
 newHaloTable = remainingHalosMass + maxMasses;
 
-store(newHaloTable, ljorr1:vulcan:newHaloTable);
+store(newHaloTable, public:vulcan:haloTableComplete);
 
 --WAY TWO
 
@@ -53,7 +54,7 @@ firstMaxGroup = [from edgesWithMass e, firstMaxMass f
     where e.nowGroup = f.nowGroup and e.currentTime = f.currentTime and e.currentGroup = f.currentGroup and e.nextGroupMass = f.maxNextMass
     emit e.nowGroup, e.currentTime, e.currentGroup, min(e.nextGroup) as maxNextGroup, f.maxNextMass as maxNextMass];
 
-store(firstMaxMass, ljorr1:vulcan:firstMaxMassDec16);
+store(firstMaxMass, public:vulcan:firstMaxMassDec16);
 
 secondMaxMass = [from edgesWithMass e, firstMaxGroup f
     where e.nowGroup = f.nowGroup and e.currentGroup = f.currentGroup and e.currentTime = f.currentTime and e.nextGroup != f.maxNextGroup
@@ -78,4 +79,4 @@ newHaloTable = haloTable + maxMasses1 + maxMasses2;
 newHaloTable = [from newHaloTable h
     emit h.nowGroup, h.grpID, h.timeStep, h.mass, h.totalParticles, h.HI, h.prog, max(h.massRatio)];
 
-store(newHaloTable, ljorr1:vulcan:haloTableProgDec16);
+store(newHaloTable, public:vulcan:haloTableProgDec16);

@@ -143,6 +143,6 @@
             ]
         }
     ],
-    "logicalRa": "compute halo table to store on each worker",
-    "rawQuery": "compute halo table to store on each worker"
+    "logicalRa": "aggregate local halo tables by shuffling on now group, grp id, and timestep to compute halo table to store on each worker",
+    "rawQuery": "aggregate local halo tables by shuffling on now group, grp id, and timestep to compute halo table to store on each worker"
 }

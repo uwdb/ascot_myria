@@ -41,6 +41,6 @@
             ]
         }
     ],
-    "logicalRa": "localHaloTable",
+    "logicalRa": "localHaloTable: generate halo information for each group of interest using local data",
     "rawQuery": "localHaloTable"
 }
