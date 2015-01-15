@@ -20,7 +20,7 @@ progenitors = distinct(progenitors + maxGroup);
 
 I = [from I emit i+1 as i];
 
-while [from I emit min(i) < 7];
+while [from I emit min(i) <= 7];
 
 store(progenitors, public:vulcan:progen);
 
