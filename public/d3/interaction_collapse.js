@@ -212,19 +212,20 @@ var givenAttrsNodes = Object.getOwnPropertyNames(raw_nodes[0]);
 var givenAttrsLinks = Object.getOwnPropertyNames(raw_links[0]);
 //variable names in raw data file are values, variable names in javascript are keys
 var attrsNodesMap = {
-    "GrpID": "grpID",
-    "Timestep": "timeStep",
-    "NowGroup": "nowGroup",
-    "HaloMass": "haloMass",
-    "TotalParticles": "totalParticles",
-    "MassRatio": "massRatio",
-    "Prog": "prog"};
+    "grpID": "grpID",
+    "timeStep": "timeStep",
+    "nowGroup": "nowGroup",
+    "mass": "haloMass",
+    "totalParticles": "totalParticles",
+    "massRatio": "massRatio",
+    "prog": "prog",
+    "HI": "HI"};
 var attrsLinksMap = {
-    "NowGroup": "nowGroup",
-    "CurrentTime": "currentTime",
-    "CurrentGrp": "currentGroup",
-    "NextGrp": "nextGroup",
-    "SharedParticleCount": "sharedParticleCount"};
+    "nowGroup": "nowGroup",
+    "currentTime": "currentTime",
+    "currentGroup": "currentGroup",
+    "nextGroup": "nextGroup",
+    "sharedParticleCount": "sharedParticleCount"};
 //change variable names to match what we use and remove ones we don't
 for(i = 0; i < raw_nodes.length; i++){
     for(j = 0; j < givenAttrsNodes.length; j++) {
@@ -1319,6 +1320,7 @@ function tipHtml(d) {
     return "Halo Group: <span style='color:" + color +"'>"  + d.grpID + "</span><br/>" 
           + "Halo Mass: <span style='color:" + color +"'>" + (+d.haloMass).toExponential(3) + "</span><br/>" 
           + "Total Particles: <span style='color:" + color +"'>" + d.totalParticles + "</span><br/>"
+          + "HI: <span style='color:" + color +"'>" + d3.round(+d.HI, 3) + "</span><br/>"
           + "Merger Mass Ratio It Participated In: <span style='color:" + color +"'>" + d3.round(+d.massRatio, 3) + "</span><br/>";
 }
 
