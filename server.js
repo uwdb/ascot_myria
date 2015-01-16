@@ -132,7 +132,6 @@ app.post('/myria/postquery', function(req, postResponse) {
 app.get('/myria/querystatus', function(req, postResponse){
   console.log("/query/query-" + req.get('query', ''));
   var request = https.request({
-    rejectUnauthorized: false,
     hostname: "rest.myria.cs.washington.edu",
     port: 1776,
     path: "/query/query-" + req.param('query'),
@@ -162,7 +161,6 @@ app.get('/myria/querystatus', function(req, postResponse){
 //We are basically requesting a download
 app.get('/myria/getdata', function(req, postResponse){
   var request = https.request({
-    rejectUnauthorized: false,
     hostname: "rest.myria.cs.washington.edu",
     port: 1776,
     path: "/dataset/user-" + req.param('user') + "/program-" + (req.param('program') || 'adhoc') + "/relation-" + req.param('table') + '/data?format=json',
