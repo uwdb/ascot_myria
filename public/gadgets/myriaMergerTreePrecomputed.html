@@ -216,7 +216,6 @@
   <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
   <script src="../d3/underscore-min.js"></script>
   <script src="../d3/underscore.string.min.js"></script>
-  <script type="text/javascript">   _.mixin(_.str.exports());</script>
   <script src="../d3/tree_thumbnails.js"></script>
   <script src="../d3/interaction_collapse.js"></script>
   <script type="text/javascript">
@@ -424,7 +423,7 @@ $(function() {
           tryGetResult(queryId, queryTypeEnum);
         } else {
           // We are now sending the query to compute the edges table
-          var queryString = _.str.sprintf('T1 = SELECT * FROM scan(%s:%s:%s) as R WHERE R.%s=%s; store(T1, %s:%s:%s);', defaultUser, program, edgetable, nowGroupAttr, selectedGroup, username, "myMerger"+program, "edges");
+          var queryString = s.sprintf('T1 = SELECT * FROM scan(%s:%s:%s) as R WHERE R.%s=%s; store(T1, %s:%s:%s);', defaultUser, program, edgetable, nowGroupAttr, selectedGroup, username, "myMerger"+program, "edges");
           sendQueryMyria(queryString, queryType.MERGER_GET_TREE_2);
         }
       });
@@ -474,7 +473,7 @@ $(function() {
     username = document.getElementById('mergerTreeUsername').value;
 
     showVizLoadingIcon(true);
-    var queryString = _.str.sprintf('T1 = SELECT * FROM scan(%s:%s:%s) as R WHERE R.%s=%s; store(T1, %s:%s:%s);', defaultUser, program, nodestable, nowGroupAttr, selectedGroup, username, "myMerger"+program, "nodes");
+    var queryString = s.sprintf('T1 = SELECT * FROM scan(%s:%s:%s) as R WHERE R.%s=%s; store(T1, %s:%s:%s);', defaultUser, program, nodestable, nowGroupAttr, selectedGroup, username, "myMerger"+program, "nodes");
     sendQueryMyria(queryString, queryType.MERGER_GET_TREE_1);
   };
 
@@ -549,7 +548,7 @@ $(function() {
     console.log("Sending Group Query")
     username = document.getElementById('mergerTreeUsername').value;
 
-    var queryString = _.str.sprintf('T1 = scan(%s:%s:%s); T2 = [from T1 where %s = 1 and %s <= %.1f and %s >= %.1f emit %s, %s]; store(T2, %s:myMerger%s:GroupIds);', defaultUser, program, nodestable, timeStepAttr, massAttr, +selectedMaxMassRange, massAttr, +selectedMinMassRange, nowGroupAttr, massAttr, username, program);
+    var queryString = s.sprintf('T1 = scan(%s:%s:%s); T2 = [from T1 where %s = 1 and %s <= %.1f and %s >= %.1f emit %s, %s]; store(T2, %s:myMerger%s:GroupIds);', defaultUser, program, nodestable, timeStepAttr, massAttr, +selectedMaxMassRange, massAttr, +selectedMinMassRange, nowGroupAttr, massAttr, username, program);
     
     console.log("JS", queryString);
     sendQueryMyria(queryString, queryType.MERGER_GET_GROUPS);
