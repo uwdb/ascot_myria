@@ -111,7 +111,6 @@ app.post('/myria/postquery', function(req, postResponse) {
   request({
     "url":'https://demo.myria.cs.washington.edu/execute',
     "method": "POST",
-    "rejectUnauthorized": false,
     "form": {
       query: queryString,
       language: "MyriaL"
