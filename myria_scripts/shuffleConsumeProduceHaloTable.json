@@ -118,8 +118,16 @@
                         {
                         "outputName": "HI",
                         "rootExpressionOperator": {
-                            "type": "VARIABLE",
-                            "columnIdx": 5
+                            "right": {
+                                "valueType": "LONG_TYPE",
+                                "type": "CONSTANT",
+                                "value": "1991100000000000"
+                                },
+                            "type": "TIMES",
+                            "left": {
+                                "type": "VARIABLE",
+                                "columnIdx": 5
+                                }
                             }
                         }
                     ],
