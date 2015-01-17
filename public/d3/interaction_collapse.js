@@ -1081,10 +1081,10 @@ function resetTree() {
 }
 
 function download() {
-    var data = "grpID,Time(gyr),Mass\n";
+    var data = "grpID,Time(gyr),Mass,HI,MassRatio\n";
     function buildHaloString(d) {
         if (d.selected) {
-            data += [d.grpID,timeMap.get(d.timeStep)[0].time,d.haloMass].join(',') + "\n";
+            data += [d.grpID,timeMap.get(d.timeStep)[0].time,d.haloMass,d.HI,d.massRatio].join(',') + "\n";
         }
         if (d.children) {
             d.children.forEach(function(f) {buildHaloString(f);});
@@ -1320,8 +1320,8 @@ function tipHtml(d) {
     return "Halo Group: <span style='color:" + color +"'>"  + d.grpID + "</span><br/>" 
           + "Halo Mass: <span style='color:" + color +"'>" + (+d.haloMass).toExponential(3) + "</span><br/>" 
           + "Total Particles: <span style='color:" + color +"'>" + d.totalParticles + "</span><br/>"
-          + "HI: <span style='color:" + color +"'>" + d3.round(+d.HI, 3) + "</span><br/>"
-          + "Merger Mass Ratio It Participated In: <span style='color:" + color +"'>" + d3.round(+d.massRatio, 3) + "</span><br/>";
+          + "HI: <span style='color:" + color +"'>" + (+d.HI).toExponential(3) + "</span><br/>"
+          + "Merger Mass Ratio It Participated In: <span style='color:" + color +"'>" + d3.round(+d.massRatio, 2) + "</span><br/>";
 }
 
 function textBoxGroupEnter() {
