@@ -375,7 +375,9 @@
       //res = res.slice(0,100);
       
       res.sort(sortNumber); //Order from smallest to largest
-      res = res.slice(0,10);
+      if (res.length > 50) {
+        res = res.slice(0,50);
+      }
 
       d3.select("#mergerTreeGroups")
         .selectAll("option")
