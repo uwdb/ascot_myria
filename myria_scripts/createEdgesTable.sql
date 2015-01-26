@@ -19,6 +19,8 @@ do
     edges = distinct(delta + edges);
     I = [from I emit i+1 as i];
 while [from I emit min(i) < 7];
+--append to previous table
+edges = edges + scan(public:vulcan:edgesConnected);
 store(edges, public:vulcan:edgesConnected);
 
 -- use sortConnectedEdges.json to do an in memory sort on nowGroup, currentTime, nextGroup

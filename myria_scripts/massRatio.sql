@@ -35,7 +35,8 @@ remainingHalos = diff([from haloTable h emit h.nowGroup, h.grpID, h.timeStep, h.
 remainingHalosMass = [from remainingHalos h emit h.nowGroup, h.grpID, h.timeStep, h.mass, h.totalParticles, h.HI, h.prog, -1+0.0 as massRatio];
 
 newHaloTable = remainingHalosMass + maxMasses;
-
+--append to old newHaloTable
+newHaloTable = newHaloTable + scan(public:vulcan:haloTableComplete);
 store(newHaloTable, public:vulcan:haloTableComplete);
 
 --WAY TWO
