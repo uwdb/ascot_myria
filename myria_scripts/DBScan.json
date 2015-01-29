@@ -8,13 +8,13 @@
                     "opId": 1,
                     "schema": {
                         "columnNames": [
-                            "grp", "countParticles"
+                            "countParticles"
                         ],
                         "columnTypes": [
-                            "INT_TYPE","INT_TYPE"
+                            "INT_TYPE"
                         ]
                     },
-                    "sql": "SELECT grp, count(*) as countParticles FROM \"public:vulcan:snapshot1818Hash\" group by grp order by count(*) desc limit 100"
+                    "sql": "SELECT count(*) as countParticles FROM \"public:vulcan:particlesOfInterest\";"
                 },
                 {
                     "argChild": 1,
@@ -24,7 +24,7 @@
                     "opType": "DbInsert",
                     "relationKey": {
                         "programName": "adhoc",
-                        "relationName": "groupby1818",
+                        "relationName": "counts",
                         "userName": "public"
                     }
                 }
