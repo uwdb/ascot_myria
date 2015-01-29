@@ -1,9 +1,9 @@
-haloTable = scan(public:vulcan:haloTable);
-particleTable = scan(public:vulcan:particlesOfInterest);
-nowGroups = [from haloTable ht, particleTable pt where ht.nowGroup = pt.nowGroup and ht.grpID = pt.grp and ht.timeStep = pt.timestep and ht.timeStep = 1 emit ht.nowGroup, ht.grpID, ht.timeStep, ht.mass, pt.iOrder];
-edgesInit = [from particleTable pt1, particleTable pt2, haloTable ht1, haloTable ht2, nowGroups ng
-        where pt1.grp = ht1.grpID and pt1.timestep = ht1.timeStep and pt1.iOrder = pt2.iOrder and pt1.iOrder = int(ng.iOrder) and pt2.nowGroup = ht2.nowGroup and pt2.grp = ht2.grpID and pt2.timestep = ht2.timeStep and ht1.timeStep+1 = ht2.timeStep
-        emit ng.nowGroup, ht1.timeStep as currentTime, ht1.grpID as currentGroup, ht2.grpID as nextGroup, count(*) as sharedParticleCount];
+--Particle Table (nowGroup, iOrder, mass, HI, type, timestep, grp)
+haloTable = [from scan(public:vulcan:haloTable) h where h.totalParticles > 256 emit h.*];
+particleTable = [from scan(public:vulcan:particlesOfInterest) pt, haloTable ht where ht.nowGroup = pt.nowGroup and ht.grpID = pt.grp and ht.timeStep = pt.timestep emit pt.*];
+edgesInit = [from particleTable pt1, particleTable pt2
+        where pt1.nowGroup = pt2.nowGroup and pt1.iOrder = pt2.iOrder and pt1.timestep+1 = pt2.timestep
+        emit pt1.nowGroup, pt1.timestep as currentTime, pt1.grp as currentGroup, pt2.grp as nextGroup, count(*) as sharedParticleCount];
 -- filter edges on number of particles shared
 edges = [from edgesInit where sharedParticleCount > 256 emit *];
 store(edges, public:vulcan:edgesInitial);
@@ -14,13 +14,13 @@ I = [1 as i];
 
 do
     delta = [from edges as e1, edgesInit as e2, I
-        where e1.nextGroup = e2.currentGroup and e1.currentTime+1 = e2.currentTime and e1.currentTime = int(I.i) and e1.nowGroup = e2.nowGroup
+        where e1.nextGroup = e2.currentGroup and e1.currentTime+1 = e2.currentTime and e1.currentTime = I.i and e1.nowGroup = e2.nowGroup
         emit e2.nowGroup, e2.currentTime, e2.currentGroup, e2.nextGroup, e2.sharedParticleCount];
     edges = distinct(delta + edges);
     I = [from I emit i+1 as i];
 while [from I emit min(i) < 7];
 --append to previous table
-edges = edges + scan(public:vulcan:edgesConnected);
+--edges = edges + scan(public:vulcan:edgesConnected);
 store(edges, public:vulcan:edgesConnected);
 
 -- use sortConnectedEdges.json to do an in memory sort on nowGroup, currentTime, nextGroup
