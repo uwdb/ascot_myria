@@ -33,8 +33,9 @@
 ehthumbs.db
 Thumbs.db
 
+/forever_out/*
 /node_modules/forever/
 /node_modules/.bin/forever
 server_js_output.txt
-/forever_out/
+
 
