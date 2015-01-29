@@ -13,9 +13,9 @@
                             "timestep"
                         ],
                         "columnTypes": [
-                            "INT_TYPE",
-                            "INT_TYPE",
-                            "INT_TYPE"
+                            "LONG_TYPE",
+                            "LONG_TYPE",
+                            "LONG_TYPE"
                         ]
                     },
                     "sql": "SELECT DISTINCT s.\"nowGroup\" as nowGroup, s.grp as \"grpID\", s.timestep as \"timeStep\" FROM \"public:vulcan:particlesOfInterest\" as s"

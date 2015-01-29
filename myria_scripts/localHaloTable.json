@@ -16,11 +16,11 @@
                                 "HI"
                             ],
                             "columnTypes": [
-                                "INT_TYPE",
-                                "INT_TYPE",
-                                "INT_TYPE",
+                                "LONG_TYPE",
+                                "LONG_TYPE",
+                                "LONG_TYPE",
                                 "FLOAT_TYPE",
-                                "INT_TYPE",
+                                "LONG_TYPE",
                                 "FLOAT_TYPE"
                             ]
                     },
