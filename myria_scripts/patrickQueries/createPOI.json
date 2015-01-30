@@ -1,0 +1,48 @@
+{
+    "fragments": [
+        {
+            "operators": [
+                {
+                    "opType": "DbQueryScan",
+                    "opName": "Scan",
+                    "opId": 1,
+                    "schema": {
+                          "columnNames": [
+                                "nowGroup",
+                                "iOrder",
+                                "mass",
+                                "HI",
+                                "type",
+                                "timestep",
+                                "grp"
+                            ],
+                            "columnTypes": [
+                                "LONG_TYPE",
+                                "LONG_TYPE",
+                                "FLOAT_TYPE",
+                                "FLOAT_TYPE",
+                                "STRING_TYPE",
+                                "LONG_TYPE",
+                                "LONG_TYPE"
+                            ]
+                    },
+                    "sql": "SELECT p1.\"nowGroup\", p1.\"iOrder\" as iOrder, p1.mass, p1.\"HI\", p1.type, 1 as timestep, p1.grp FROM \"patrick:test:presentDayParticles\" p1 UNION SELECT p1.\"nowGroup\", p2.iord as iOrder, p2.mass, p2.\"HI\", p2.type, 2 as timestep, p2.grp FROM  \"patrick:test:presentDayParticles\" p1, \"public:vulcan:snapshot1745Hash\" p2 WHERE p1.\"iOrder\" = p2.iord and p2.grp>-1 UNION SELECT p1.\"nowGroup\", p3.iord as iOrder, p3.mass, p3.\"HI\", p3.type, 3 as timestep, p3.grp FROM \"patrick:test:presentDayParticles\" p1, \"public:vulcan:snapshot1648Hash\" p3 WHERE p1.\"iOrder\" = p3.iord and p3.grp>-1"
+                },
+                {
+                    "argChild": 1,
+                    "argOverwriteTable": true,
+                    "opName": "Insert",
+                    "opId": 2,
+                    "opType": "DbInsert",
+                    "relationKey": {
+                        "programName": "test",
+                        "relationName": "particlesOfInterest",
+                        "userName": "patrick"
+                    }
+                }
+            ]
+        }
+    ],
+    "logicalRa": "particlesOfInterest: particles in present day groups of interest traced through time",
+    "rawQuery": "particlesOfInterest"
+}
