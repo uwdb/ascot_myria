@@ -1,0 +1,48 @@
+{
+  "fragments":[
+    {
+      "operators":[
+        {
+          "relationKey": {
+          "userName": "public",
+          "relationName": "groupsToCompute",
+          "programName": "vulcan"
+          },
+          "opType": "TableScan",
+          "opName": "MyriaScan(public:vulcan:groupsToCompute)",
+          "opId": 0
+          },
+        {
+          "argChild":0,
+          "opName":"broadcast",
+          "opId":2,
+          "opType":"BroadcastProducer"
+        }
+      ]
+    },
+    {
+      "operators":[
+        {
+          "argOperatorId":2,
+          "opName":"receive",
+          "opId":3,
+          "opType":"BroadcastConsumer"
+        },
+        {
+          "argChild":3,
+          "argOverwriteTable":true,
+          "opType":"DbInsert",
+          "opName":"V0",
+          "opId":4,
+          "relationKey":{
+            "programName":"test",
+            "relationName":"groupsToCompute",
+            "userName":"patrick"
+          }
+        }
+      ]
+    }
+  ],
+  "logicalRa": "broadcast grpsToCompute",
+  "rawQuery": "broadcast grpsToCompute"
+}

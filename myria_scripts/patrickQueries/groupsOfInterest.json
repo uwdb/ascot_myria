@@ -1,0 +1,40 @@
+{
+    "fragments": [
+        {
+            "operators": [
+                {
+                    "opType": "DbQueryScan",
+                    "opName": "Scan",
+                    "opId": 1,
+                    "schema": {
+                         "columnNames": [
+                            "nowGroup",
+                            "grpID",
+                            "timestep"
+                        ],
+                        "columnTypes": [
+                            "LONG_TYPE",
+                            "LONG_TYPE",
+                            "LONG_TYPE"
+                        ]
+                    },
+                    "sql": "SELECT DISTINCT s.\"nowGroup\" as nowGroup, s.grp as \"grpID\", s.timestep as \"timeStep\" FROM \"patrick:test:particlesOfInterest\" as s"
+                },
+                {
+                    "argChild": 1,
+                    "opId": 2,
+                    "argOverwriteTable": true,
+                    "opName": "Insert",
+                    "opType": "DbInsert",
+                    "relationKey": {
+                        "programName": "test",
+                        "relationName": "groupsOfInterest",
+                        "userName": "patrick"
+                    }
+                }
+            ]
+        }
+    ],
+    "logicalRa": "groups of interest from all particles of interest",
+    "rawQuery": "groups of interest from all particles of interest"
+}

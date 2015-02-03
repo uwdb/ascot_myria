@@ -1,0 +1,48 @@
+{
+    "fragments": [
+        {
+            "operators": [
+                {
+                    "opType": "DbQueryScan",
+                    "opName": "Scan",
+                    "opId": 1,
+                    "schema": {
+                         "columnNames": [
+                            "nowGroup",
+                            "iOrder",
+                            "mass",
+                            "HI",
+                            "type",
+                            "timestep",
+                            "grp"
+                        ],
+                        "columnTypes": [
+                            "LONG_TYPE",
+                            "LONG_TYPE",
+                            "FLOAT_TYPE",
+                            "FLOAT_TYPE",
+                            "STRING_TYPE",
+                            "LONG_TYPE",
+                            "LONG_TYPE"
+                        ]
+                    },
+                    "sql": "SELECT s.grp as nowGroup, s.iord, s.mass, s.\"HI\", s.type, 1 as timestep, s.grp FROM \"public:vulcan:snapshot1818Hash\" as s, \"patrick:test:groupsToCompute\" as g WHERE s.grp = g.grp"
+                },
+                {
+                    "argChild": 1,
+                    "opId": 3,
+                    "argOverwriteTable": true,
+                    "opName": "Insert",
+                    "opType": "DbInsert",
+                    "relationKey": {
+                        "programName": "test",
+                        "relationName": "presentDayParticles",
+                        "userName": "patrick"
+                    }
+                }
+            ]
+        }
+    ],
+    "logicalRa": "particles from present day from groupsToCompute",
+    "rawQuery": "particles from present day form groupsToCompute"
+}

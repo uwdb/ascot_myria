@@ -1,0 +1,46 @@
+{
+    "fragments": [
+        {
+            "operators": [
+                {
+                    "opType": "DbQueryScan",
+                    "opName": "Scan",
+                    "opId": 1,
+                    "schema": {
+                          "columnNames": [
+                                "nowGroup",
+                                "grpID",
+                                "timeStep",
+                                "mass",
+                                "totalParticles",
+                                "HI"
+                            ],
+                            "columnTypes": [
+                                "LONG_TYPE",
+                                "LONG_TYPE",
+                                "LONG_TYPE",
+                                "FLOAT_TYPE",
+                                "LONG_TYPE",
+                                "FLOAT_TYPE"
+                            ]
+                    },
+                    "sql": "SELECT p1.\"nowGroup\", p1.\"grpID\", p1.\"timestep\" as \"timeStep\", sum(p2.mass) as mass, count(*) as \"totalParticles\", sum(p2.\"HI\"*p2.mass) as \"HI\" FROM \"patrick:test:groupsOfInterest\" p1, \"public:vulcan:snapshot1818Hash\" p2 WHERE p1.\"grpID\" = p2.grp and p1.\"timestep\" = 1 GROUP BY p1.\"nowGroup\", p1.\"grpID\", p1.\"timestep\" UNION SELECT p1.\"nowGroup\", p1.\"grpID\", p1.\"timestep\" as \"timeStep\", sum(p2.mass) as mass, count(*) as \"totalParticles\", sum(p2.\"HI\"*p2.mass) as \"HI\" FROM \"patrick:test:groupsOfInterest\" p1, \"public:vulcan:snapshot1745Hash\" p2 WHERE p1.\"grpID\" = p2.grp and p1.\"timestep\" = 2 GROUP BY p1.\"nowGroup\", p1.\"grpID\", p1.\"timestep\" UNION SELECT p1.\"nowGroup\", p1.\"grpID\", p1.\"timestep\" as \"timeStep\", sum(p2.mass) as mass, count(*) as \"totalParticles\", sum(p2.\"HI\"*p2.mass) as \"HI\" FROM \"patrick:test:groupsOfInterest\" p1, \"public:vulcan:snapshot1648Hash\" p2 WHERE p1.\"grpID\" = p2.grp and p1.\"timestep\" = 3 GROUP BY p1.\"nowGroup\", p1.\"grpID\", p1.\"timestep\""
+                },
+                {
+                    "argChild": 1,
+                    "argOverwriteTable": true,
+                    "opName": "Insert",
+                    "opId": 2,
+                    "opType": "DbInsert",
+                    "relationKey": {
+                        "programName": "test",
+                        "relationName": "localHaloTable",
+                        "userName": "patrick"
+                    }
+                }
+            ]
+        }
+    ],
+    "logicalRa": "localHaloTable: generate halo information for each group of interest using local data",
+    "rawQuery": "localHaloTable"
+}
