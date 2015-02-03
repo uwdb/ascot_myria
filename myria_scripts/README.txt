@@ -4,6 +4,7 @@ curl -i -XPOST https://rest.myria.cs.washington.edu:1776/query -H "Content-type:
 
 RUN ORDER
 
+createGroupsToCompute.sql
 broadcastGrpsToCompute.json
 presentDayParticlesJoinGroupsToCompute.json
 createPOI.json

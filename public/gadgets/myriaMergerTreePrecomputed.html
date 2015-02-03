@@ -431,7 +431,7 @@
           tryGetResult(queryId, queryTypeEnum);
         } else {
           // We are now sending the query to compute the edges table
-          var queryString = s.sprintf('T1 = SELECT * FROM scan(%s:%s:%s) as R WHERE R.%s=%s; store(T1, %s:%s:%s);', defaultUser, program, edgetable, nowGroupAttr, selectedGroup, username, "myMerger"+program, "edges");
+          var queryString = s.sprintf('T1 = SELECT * FROM scan(%s:%s:%s) as R WHERE R.%s=%s; \n store(T1, %s:%s:%s);', defaultUser, program, edgetable, nowGroupAttr, selectedGroup, username, "myMerger"+program, "edges");
           sendQueryMyria(queryString, queryType.MERGER_GET_TREE_2);
         }
       });
