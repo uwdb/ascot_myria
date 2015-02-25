@@ -8,6 +8,8 @@ maxShared = [from edges emit nowGroup,currentTime, currentGroup, max(sharedParti
 
 I = [2 as i];
 
+maxTime = [from edges emit max(currentTime)+1 as maxT];
+
 --loop
 do
 
@@ -20,7 +22,7 @@ progenitors = distinct(progenitors + maxGroup);
 
 I = [from I emit i+1 as i];
 
-while [from I emit min(i) <= 7];
+while [from I, maxTime where I.i <= maxTime.maxT emit count(*) > 0];
 
 store(progenitors, public:vulcan:progen);
 

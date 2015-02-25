@@ -11,6 +11,7 @@ store(edges, public:vulcan:edgesInitial);
 edgesInit = scan(public:vulcan:edgesInitial);
 edges = [from edgesInit where currentTime = 1 emit *];
 I = [1 as i];
+maxTime = [from haloTable emit max(timeStep) as maxT];
 
 do
     delta = [from edges as e1, edgesInit as e2, I
@@ -18,7 +19,7 @@ do
         emit e2.nowGroup, e2.currentTime, e2.currentGroup, e2.nextGroup, e2.sharedParticleCount];
     edges = distinct(delta + edges);
     I = [from I emit i+1 as i];
-while [from I emit min(i) < 7];
+while [from I, maxTime where I.i < maxTime.maxT emit count(*) > 0];
 --append to previous table
 --edges = edges + scan(public:vulcan:edgesConnected);
 store(edges, public:vulcan:edgesConnected);
