@@ -1,0 +1,16 @@
+notes
+
+select * from "public:vulcan:presentDayParticles" p1, "public:vulcan:snapshot1818Hash2" p2 where p1.iord = p2.iord;
+
+
+
+select * from "public:vulcan:snapshot1745Hash2" p1, "public:vulcan:snapshot1818Hash2" p2 where p1.iord = p2.iord;
+
+
+
+36
+
+
+ 27744245
+
+ 7780680

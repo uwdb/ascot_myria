@@ -1,0 +1,30 @@
+{
+    "fragments": [
+        {
+            "operators": [
+                {
+                    "opType": "DbQueryScan",
+                    "opName": "Scan",
+                    "opId": 1,
+                    "schema": {
+                        "columnNames": [
+                            "countParticles"
+                        ],
+                        "columnTypes": [
+                            "INT_TYPE"
+                        ]
+                    },
+                    "sql": "select * from \"public:vulcan:snapshot1818Hash2\" s1, \"public:vulcan:snapshot1745Hash2\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1;"
+                },
+                {
+                 "opType": "SinkRoot",
+                 "opName": "V0", 
+                 "opId": 2,
+                 "argChild": 1
+                }
+            ]
+        }
+    ],
+    "logicalRa": "local join sink",
+    "rawQuery": "local join sink"
+}

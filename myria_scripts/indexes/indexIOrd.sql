@@ -1,0 +1,16 @@
+CREATE INDEX snap1818i2 ON "public:vulcan:snapshot1818Hash2" (iOrd);
+CREATE INDEX snap1745i2 ON "public:vulcan:snapshot1745Hash2" (iOrd);
+CREATE INDEX snap1648i2 ON "public:vulcan:snapshot1648Hash2" (iOrd);
+CREATE INDEX snap1556i2 ON "public:vulcan:snapshot1556Hash2" (iOrd);
+CREATE INDEX snap1536i2 ON "public:vulcan:snapshot1536Hash2" (iOrd);
+CREATE INDEX snap1469i2 ON "public:vulcan:snapshot1469Hash2" (iOrd);
+CREATE INDEX snap1387i2 ON "public:vulcan:snapshot1387Hash2" (iOrd);
+CREATE INDEX snap1380i2 ON "public:vulcan:snapshot1380Hash" (iOrd);
+CREATE INDEX snap1309i ON "public:vulcan:snapshot1309Hash" (iOrd);
+CREATE INDEX snap1236i ON "public:vulcan:snapshot1236Hash" (iOrd);
+CREATE INDEX snap1167i ON "public:vulcan:snapshot1167Hash" (iOrd);
+CREATE INDEX snap1101i ON "public:vulcan:snapshot1101Hash" (iOrd);
+CREATE INDEX snap1093i ON "public:vulcan:snapshot1093Hash" (iOrd);
+CREATE INDEX snap1039i ON "public:vulcan:snapshot1039Hash" (iOrd);
+CREATE INDEX snap1024i ON "public:vulcan:snapshot1024Hash" (iOrd);
+CREATE INDEX snap0981i ON "public:vulcan:snapshot0981Hash" (iOrd);
