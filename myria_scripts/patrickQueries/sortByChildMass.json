@@ -1,0 +1,264 @@
+{
+    "fragments": [
+        {
+            "operators": [
+                {
+                    "opType": "TableScan",
+                    "opId": 0,
+                    "opName": "MyriaScan(patrick:test:haloTableProg)",
+                    "relationKey": {
+                        "userName": "patrick",
+                        "programName": "test",
+                        "relationName": "haloTableProg"
+                    },
+                    "storedRelationId": null
+                },
+                {
+                    "opType": "ShuffleProducer",
+                    "opId": 2,
+                    "opName": "MyriaShuffleProducer(h($1,$0))",
+                    "argChild": 0,
+                    "argPf": {
+                        "type": "MultiFieldHash",
+                        "numPartitions": 72,
+                        "indexes": [
+                            1,
+                            0
+                        ]
+                    },
+                    "argBufferStateType": null
+                }
+            ]
+        },
+        {
+            "operators": [
+                {
+                    "opType": "TableScan",
+                    "opId": 1,
+                    "opName": "MyriaScan(patrick:test:edgesTree)",
+                    "relationKey": {
+                        "userName": "patrick",
+                        "programName": "test",
+                        "relationName": "edgesTree"
+                    },
+                    "storedRelationId": null
+                },
+                {
+                    "opType": "ShuffleProducer",
+                    "opId": 3,
+                    "opName": "MyriaShuffleProducer(h($4,$0))",
+                    "argChild": 1,
+                    "argPf": {
+                        "type": "MultiFieldHash",
+                        "numPartitions": 72,
+                        "indexes": [
+                            4,
+                            0
+                        ]
+                    },
+                    "argBufferStateType": null
+                }
+            ]
+        },
+        {
+            "operators": [
+                {
+                    "opType": "ShuffleConsumer",
+                    "opId": 4,
+                    "opName": "MyriaShuffleConsumer",
+                    "argOperatorId": 3
+                },
+                {
+                    "opType": "ShuffleConsumer",
+                    "opId": 5,
+                    "opName": "MyriaShuffleConsumer",
+                    "argOperatorId": 2
+                },
+                {
+                    "opType": "SymmetricHashJoin",
+                    "opId": 6,
+                    "opName": "MyriaSymmetricHashJoin((($1 = $12) and ($0 = $8)); $0,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)",
+                    "argChild1": 5,
+                    "argChild2": 4,
+                    "argColumnNames": [
+                        "nowGroup",
+                        "grpID",
+                        "timeStep",
+                        "mass",
+                        "totalParticles",
+                        "HI",
+                        "prog",
+                        "massRatio",
+                        "nowGroup1",
+                        "currentTime",
+                        "splitOrder",
+                        "currentGroup",
+                        "nextGroup",
+                        "sharedParticleCount"
+                    ],
+                    "argColumns1": [
+                        1,
+                        0
+                    ],
+                    "argColumns2": [
+                        4,
+                        0
+                    ],
+                    "argSelect1": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7
+                    ],
+                    "argSelect2": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    "argSetSemanticsLeft": false,
+                    "argSetSemanticsRight": false
+                },
+                {
+                    "opType": "Filter",
+                    "opId": 7,
+                    "opName": "MyriaSelect((timeStep = (currentTime + 1)))",
+                    "argChild": 6,
+                    "argPredicate": {
+                        "outputName": null,
+                        "javaExpression": null,
+                        "rootExpressionOperator": {
+                            "type": "EQ",
+                            "left": {
+                                "type": "VARIABLE",
+                                "columnIdx": 2
+                            },
+                            "right": {
+                                "type": "PLUS",
+                                "left": {
+                                    "type": "VARIABLE",
+                                    "columnIdx": 9
+                                },
+                                "right": {
+                                    "type": "CONSTANT",
+                                    "valueType": "LONG_TYPE",
+                                    "value": "1L"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "opType": "Apply",
+                    "opId": 8,
+                    "opName": "MyriaApply(nowGroup=nowGroup,currentTime=currentTime,currentGroup=currentGroup,nextGroup=nextGroup,nextGroupMass=mass)",
+                    "argChild": 7,
+                    "emitExpressions": [
+                        {
+                            "outputName": "nowGroup",
+                            "javaExpression": null,
+                            "rootExpressionOperator": {
+                                "type": "VARIABLE",
+                                "columnIdx": 8
+                            }
+                        },
+                        {
+                            "outputName": "currentTime",
+                            "javaExpression": null,
+                            "rootExpressionOperator": {
+                                "type": "VARIABLE",
+                                "columnIdx": 9
+                            }
+                        },
+                        {
+                            "outputName": "currentGroup",
+                            "javaExpression": null,
+                            "rootExpressionOperator": {
+                                "type": "VARIABLE",
+                                "columnIdx": 11
+                            }
+                        },
+                        {
+                            "outputName": "nextGroup",
+                            "javaExpression": null,
+                            "rootExpressionOperator": {
+                                "type": "VARIABLE",
+                                "columnIdx": 12
+                            }
+                        },
+                        {
+                            "outputName": "nextGroupMass",
+                            "javaExpression": null,
+                            "rootExpressionOperator": {
+                                "type": "VARIABLE",
+                                "columnIdx": 3
+                            }
+                        }
+                    ]
+                },
+                {
+                    "opId": 9,
+                    "opName": "ShuffleProducer",
+                    "argChild": 8,
+                    "opType": "ShuffleProducer",
+                    "argPf": {
+                        "indexes": [
+                            0,
+                            1,
+                            2
+                        ],
+                        "type": "MultiFieldHash"
+                    }
+                }
+            ]
+        },
+        {
+            "operators": [
+                {
+                    "opId": 10,
+                    "opName": "ShuffleConsumer",
+                    "opType": "ShuffleConsumer",
+                    "argOperatorId": 9
+                },
+                {
+                    "opId": 11,
+                    "opType": "InMemoryOrderBy",
+                    "opName": "InMemSort(edges)",
+                    "argChild": 10,
+                    "argSortColumns": [
+                        0,
+                        1,
+                        2,
+                        4
+                    ],
+                    "argAscending": [
+                        true,
+                        true,
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "opType": "DbInsert",
+                    "argChild": 11,
+                    "opName": "Store",
+                    "argOverwriteTable": true,
+                    "opId": 12,
+                    "relationKey": {
+                        "userName": "patrick",
+                        "relationName": "edgesWithMassSort",
+                        "programName": "test"
+                    }
+                }
+            ]
+        }
+    ],      
+    "logicalRa": "child mass sort",
+    "rawQuery": "child mass sort"
+}
