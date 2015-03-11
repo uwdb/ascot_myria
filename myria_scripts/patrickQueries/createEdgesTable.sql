@@ -22,3 +22,4 @@ while [from I emit min(i) < 7];
 --append to previous table
 --edges = edges + scan(patrick:test:edgesConnected);
 store(edges, patrick:test:edgesConnected);
+--Test
