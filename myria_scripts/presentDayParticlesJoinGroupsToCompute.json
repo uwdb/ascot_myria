@@ -26,7 +26,7 @@
                             "LONG_TYPE"
                         ]
                     },
-                    "sql": "SELECT s.grp as nowGroup, s.iord, s.mass, s.\"HI\", s.type, 1 as timestep, s.grp FROM \"public:vulcan:snapshot1818Hash\" as s, \"public:vulcan:groupsToCompute\" as g WHERE s.grp = g.grp"
+                    "sql": "SELECT s.grp as nowGroup, s.iord, s.mass, s.\"HI\", s.type, 1 as timestep, s.grp FROM \"public:vulcan:snapshot1818Hash2\" as s, \"public:vulcan:groupsToCompute\" as g WHERE s.grp = g.grp"
                 },
                 {
                     "argChild": 1,

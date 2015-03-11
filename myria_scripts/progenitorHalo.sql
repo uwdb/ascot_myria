@@ -32,8 +32,6 @@ haloTable1 = [from scan(public:vulcan:haloTable) h, edges e where h.nowGroup = e
 haloTable2 = [from scan(public:vulcan:haloTable) h, edges e where h.nowGroup = e.nowGroup and h.grpID = e.nextGroup and h.timeStep = e.currentTime+1 emit h.*];
 haloTable = distinct(haloTable1 + haloTable2);
 
---JEN: I made this one separately so I can do the diff later
-
 findProg = [from haloTable h, progenitors p where h.nowGroup = p.nowGroup and h.grpID = p.currentGroup and h.timeStep = p.currentTime emit h.*];
 
 labelProg = [from findProg as f emit f.*, 1 as prog];
