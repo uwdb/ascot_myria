@@ -1,0 +1,112 @@
+{
+    "fragments": [
+        {
+            "operators": [
+                {
+                    "opType": "TableScan",
+                    "opName": "Scan",
+                    "opId": 1,
+                    "relationKey": {
+                        "userName": "patrick",
+                        "relationName": "particleCount",
+                        "programName": "test"
+                    }
+                },
+                {
+                    "argChild": 1,
+                    "opName": "ShuffleProducer",
+                    "opId": 2,
+                    "opType": "ShuffleProducer",
+                    "argPf": {
+                        "indexes": [
+                            0,
+                            1,
+                            2
+                        ],
+                        "type": "MultiFieldHash"
+                    }
+                }
+            ]
+        },
+        {
+            "operators": [
+                {
+                    "opType":"ShuffleConsumer",
+                    "opName":"ShuffleConsumer",
+                    "opId": 3,
+                    "argOperatorId": 2
+                },
+                {
+                    "opType": "MultiGroupByAggregate",
+                    "opName": "AggregateConsume",
+                    "argChild": 3,
+                    "opId":4,
+                    "aggregators": [
+                        {
+                            "column": 3,
+                            "aggOps": [
+                                "SUM"
+                            ],
+                            "type": "SingleColumn"
+                        }
+                    ],
+                    "argGroupFields": [
+                        0,
+                        1,
+                        2
+                    ]
+                },
+                {
+                    "emitExpressions": [
+                        {
+                        "outputName": "nowGroup",
+                        "rootExpressionOperator": {
+                            "type": "VARIABLE",
+                            "columnIdx": 0
+                            }
+                        },
+                        {
+                        "outputName": "grpID",
+                        "rootExpressionOperator": {
+                            "type": "VARIABLE",
+                            "columnIdx": 1
+                            }
+                        },
+                        {
+                        "outputName": "timeStep",
+                        "rootExpressionOperator": {
+                            "type": "VARIABLE",
+                            "columnIdx": 2
+                            }
+                        },
+                        {
+                        "outputName": "totalParticles",
+                        "rootExpressionOperator": {
+                            "type": "VARIABLE",
+                            "columnIdx": 3
+                            }
+                        }
+                    ],
+                    "opName": "ApplyParticleCount",
+                    "opType": "Apply",
+                    "opId": 5,
+                    "argChild": 4
+                },
+                {
+                    "opType": "DbInsert",
+                    "opName": "Insert",
+                    "argOverwriteTable": true,
+                    "argChild": 5,
+                    "opId": 6,
+                    "relationKey": {
+                        "programName": "test",
+                        "relationName": "totalParticleCount",
+                        "userName": "patrick"
+                    }
+                }
+            ]
+        }
+    ],
+    "logicalRa": "aggregate particle counts by shuffling on now group, grp id, and timestep to compute halo table to store on each worker",
+    "rawQuery": "aggregate particle counts by shuffling on now group, grp id, and timestep to compute halo table to store on each worker"
+}

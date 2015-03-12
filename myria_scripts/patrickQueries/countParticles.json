@@ -1,0 +1,42 @@
+{
+    "fragments": [
+        {
+            "operators": [
+                {
+                    "opType": "DbQueryScan",
+                    "opName": "Scan",
+                    "opId": 1,
+                    "schema": {
+                         "columnNames": [
+                            "nowGroup",
+                            "grpID",
+                            "timestep",
+														"count"
+                        ],
+                        "columnTypes": [
+                            "LONG_TYPE",
+                            "LONG_TYPE",
+                            "LONG_TYPE",
+														"LONG_TYPE"
+                        ]
+                    },
+										"sql": "SELECT p2.\"nowGroup\", p2.grp, p2.timestep, count(*) FROM \"patrick:test:particlesOfInterest\" p1, \"patrick:test:particlesOfInterest\" p2 WHERE p1.timestep = 1 and p2.timestep > 1 and p1.\"nowGroup\" = p2.\"nowGroup\" GROUP BY p2.\"nowGroup\", p2.grp, p2.timestep UNION SELECT p3.\"nowGroup\", p3.grp, p3.timestep, count(*) FROM \"patrick:test:particlesOfInterest\" p3 WHERE p3.timestep = 1 GROUP BY p3.\"nowGroup\", p3.grp, p3.timestep"
+                },
+                {
+                    "argChild": 1,
+                    "opId": 2,
+                    "argOverwriteTable": true,
+                    "opName": "Insert",
+                    "opType": "DbInsert",
+                    "relationKey": {
+                        "programName": "test",
+                        "relationName": "particleCount",
+                        "userName": "patrick"
+                    }
+                }
+            ]
+        }
+    ],
+    "logicalRa": "particle count from all particles of interest",
+    "rawQuery": "particle count from all particles of interest"
+}
