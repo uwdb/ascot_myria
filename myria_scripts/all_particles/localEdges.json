@@ -1,0 +1,42 @@
+{
+    "fragments": [
+        {
+            "operators": [
+                {
+                    "opType": "DbQueryScan",
+                    "opName": "Scan",
+                    "opId": 1,
+                    "schema": {
+                          "columnNames": [
+                                "currentGroup",
+                                "currentTime",
+                                "nextGroup",
+                                "sharedParticles"
+                            ],
+                            "columnTypes": [
+                                "LONG_TYPE",
+                                "LONG_TYPE",
+                                "LONG_TYPE",
+                                "LONG_TYPE"
+                            ]
+                    },
+                    "sql": "((select s1.grp as currentGroup, 1 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot1818Hash2\" s1, \"public:vulcan:snapshot1745Hash2\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 2 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot1745Hash2\" s1, \"public:vulcan:snapshot1648Hash2\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 3 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot1648Hash2\" s1, \"public:vulcan:snapshot1556Hash2\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 4 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot1556Hash2\" s1, \"public:vulcan:snapshot1536Hash2\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 5 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot1536Hash2\" s1, \"public:vulcan:snapshot1469Hash2\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 6 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot1469Hash2\" s1, \"public:vulcan:snapshot1387Hash2\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 7 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot1387Hash2\" s1, \"public:vulcan:snapshot1380Hash\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 8 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot1380Hash\" s1, \"public:vulcan:snapshot1309Hash\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 9 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot1309Hash\" s1, \"public:vulcan:snapshot1236Hash\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 10 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot1236Hash\" s1, \"public:vulcan:snapshot1167Hash\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 11 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot1167Hash\" s1, \"public:vulcan:snapshot1101Hash\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 12 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot1101Hash\" s1, \"public:vulcan:snapshot1093Hash\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 13 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot1093Hash\" s1, \"public:vulcan:snapshot1039Hash\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 14 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot1039Hash\" s1, \"public:vulcan:snapshot1024Hash\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 15 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot1024Hash\" s1, \"public:vulcan:snapshot0981Hash\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 16 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot0981Hash\" s1, \"public:vulcan:snapshot0925Hash\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 17 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot0925Hash\" s1, \"public:vulcan:snapshot0891Hash\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 18 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot0891Hash\" s1, \"public:vulcan:snapshot0873Hash\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp) UNION (select s1.grp as currentGroup, 19 as currentTime, s2.grp as nextGroup, count(*) as sharedParticles from \"public:vulcan:snapshot0873Hash\" s1, \"public:vulcan:snapshot0824Hash\" s2 where s1.iord = s2.iord and s1.grp > -1 and s2.grp > -1 group by s1.grp, s2.grp))"
+                },
+                {
+                    "argChild": 1,
+                    "argOverwriteTable": true,
+                    "opName": "Insert",
+                    "opId": 2,
+                    "opType": "DbInsert",
+                    "relationKey": {
+                        "programName": "vulcan",
+                        "relationName": "edgesLocal",
+                        "userName": "public"
+                    }
+                }
+            ]
+        }
+    ],
+    "logicalRa": "localEdges Union",
+    "rawQuery": "localEdges Union"
+}
