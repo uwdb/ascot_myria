@@ -56,11 +56,47 @@
                     ]
                 },
                 {
+                    "emitExpressions": [
+                        {
+                        "outputName": "currentGroup",
+                        "rootExpressionOperator": {
+                            "type": "VARIABLE",
+                            "columnIdx": 0
+                            }
+                        },
+                        {
+                        "outputName": "currentTime",
+                        "rootExpressionOperator": {
+                            "type": "VARIABLE",
+                            "columnIdx": 1
+                            }
+                        },
+                        {
+                        "outputName": "nextGroup",
+                        "rootExpressionOperator": {
+                            "type": "VARIABLE",
+                            "columnIdx": 1
+                            }
+                        },
+                        {
+                        "outputName": "sharedParticles",
+                        "rootExpressionOperator": {
+                            "type": "VARIABLE",
+                            "columnIdx": 1
+                            }
+                        }
+                    ],
+                    "opName": "apply",
+                    "opType": "Apply",
+                    "opId": 5,
+                    "argChild": 4
+                },
+                {
                     "opType": "DbInsert",
                     "opName": "Insert",
                     "argOverwriteTable": true,
-                    "argChild": 4,
-                    "opId": 5,
+                    "argChild": 5,
+                    "opId": 6,
                     "relationKey": {
                         "programName": "vulcan",
                         "relationName": "edgesInit",
