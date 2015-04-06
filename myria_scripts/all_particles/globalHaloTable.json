@@ -1,0 +1,147 @@
+{
+    "fragments": [
+        {
+            "operators": [
+                {
+                    "opType": "TableScan",
+                    "opName": "Scan",
+                    "opId": 1,
+                    "relationKey": {
+                        "userName": "public",
+                        "relationName": "nodesLocal",
+                        "programName": "vulcan"
+                    }
+                },
+                {
+                    "argChild": 1,
+                    "opName": "ShuffleProducer",
+                    "opId": 2,
+                    "opType": "ShuffleProducer",
+                    "argPf": {
+                        "indexes": [
+                            0,
+                            1
+                        ],
+                        "type": "MultiFieldHash"
+                    }
+                }
+            ]
+        },
+        {
+            "operators": [
+                {
+                    "opType":"ShuffleConsumer",
+                    "opName":"ShuffleConsumer",
+                    "opId": 3,
+                    "argOperatorId": 2
+                },
+                {
+                    "opType": "MultiGroupByAggregate",
+                    "opName": "AggregateConsume",
+                    "argChild": 3,
+                    "opId":4,
+                    "aggregators": [
+                        {
+                            "column": 2,
+                            "aggOps": [
+                                "SUM"
+                            ],
+                            "type": "SingleColumn"
+                        },
+                        {
+                            "column": 3,
+                            "aggOps": [
+                                "SUM"
+                            ],
+                            "type": "SingleColumn"
+                        },
+                        {
+                            "column": 4,
+                            "aggOps": [
+                                "SUM"
+                            ],
+                            "type": "SingleColumn"
+                        }
+                    ],
+                    "argGroupFields": [
+                        0,
+                        1
+                    ]
+                },
+                {
+                    "emitExpressions": [
+                        {
+                        "outputName": "grpID",
+                        "rootExpressionOperator": {
+                            "type": "VARIABLE",
+                            "columnIdx": 0
+                            }
+                        },
+                        {
+                        "outputName": "timeStep",
+                        "rootExpressionOperator": {
+                            "type": "VARIABLE",
+                            "columnIdx": 1
+                            }
+                        },
+                        {
+                        "outputName": "mass",
+                        "rootExpressionOperator": {
+                            "right": {
+                                "valueType": "LONG_TYPE",
+                                "type": "CONSTANT",
+                                "value": "1991100000000000"
+                                },
+                            "type": "TIMES",
+                            "left": {
+                                "type": "VARIABLE",
+                                "columnIdx": 2
+                                }
+                            }
+                        },
+                        {
+                        "outputName": "totalParticles",
+                        "rootExpressionOperator": {
+                            "type": "VARIABLE",
+                            "columnIdx": 3
+                            }
+                        },
+                        {
+                        "outputName": "HI",
+                        "rootExpressionOperator": {
+                            "right": {
+                                "valueType": "LONG_TYPE",
+                                "type": "CONSTANT",
+                                "value": "1991100000000000"
+                                },
+                            "type": "TIMES",
+                            "left": {
+                                "type": "VARIABLE",
+                                "columnIdx": 4
+                                }
+                            }
+                        }
+                    ],
+                    "opName": "ApplyMassConversion",
+                    "opType": "Apply",
+                    "opId": 5,
+                    "argChild": 4
+                },
+                {
+                    "opType": "DbInsert",
+                    "opName": "Insert",
+                    "argOverwriteTable": true,
+                    "argChild": 5,
+                    "opId": 6,
+                    "relationKey": {
+                        "programName": "vulcan",
+                        "relationName": "haloTable",
+                        "userName": "public"
+                    }
+                }
+            ]
+        }
+    ],
+    "logicalRa": "aggregate local halo tables by shuffling on now group, grp id, and timestep to compute halo table to store on each worker",
+    "rawQuery": "aggregate local halo tables by shuffling on now group, grp id, and timestep to compute halo table to store on each worker"
+}
