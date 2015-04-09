@@ -17,7 +17,7 @@
                             "columnTypes": [
                                 "LONG_TYPE",
                                 "LONG_TYPE",
-                                "LONG_TYPE",
+                                "FLOAT_TYPE",
                                 "LONG_TYPE",
                                 "FLOAT_TYPE"
                             ]
