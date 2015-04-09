@@ -75,14 +75,14 @@
                         "outputName": "nextGroup",
                         "rootExpressionOperator": {
                             "type": "VARIABLE",
-                            "columnIdx": 1
+                            "columnIdx": 2
                             }
                         },
                         {
-                        "outputName": "sharedParticles",
+                        "outputName": "sharedParticleCount",
                         "rootExpressionOperator": {
                             "type": "VARIABLE",
-                            "columnIdx": 1
+                            "columnIdx": 3
                             }
                         }
                     ],
