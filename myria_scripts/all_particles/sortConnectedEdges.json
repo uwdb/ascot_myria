@@ -1,0 +1,117 @@
+{
+    "fragments": [
+        {
+            "operators": [
+                {
+                    "opName": "Scan",
+                    "opType": "TableScan",
+                    "opId": 1,
+                    "relationKey": {
+                        "userName": "public",
+                        "relationName": "edgesConnected",
+                        "programName": "vulcan"
+                    }
+                },
+                {
+                    "emitExpressions": [
+                        {
+                            "outputName": "nowGroup",
+                            "rootExpressionOperator": {
+                                "type": "VARIABLE",
+                                "columnIdx": 0
+                            }
+                        },
+                        {
+                            "outputName": "currentGroup",
+                            "rootExpressionOperator": {
+                                "type": "VARIABLE",
+                                "columnIdx": 1
+                            }
+                        },
+                        {
+                            "outputName": "currentTime",
+                            "rootExpressionOperator": {
+                                "type": "VARIABLE",
+                                "columnIdx": 2
+                            }
+                        },
+                        {
+                            "outputName": "nextGroup",
+                            "rootExpressionOperator": {
+                                "type": "VARIABLE",
+                                "columnIdx": 3
+                            }
+                        },
+                        {
+                            "outputName": "sharedParticleCount",
+                            "rootExpressionOperator": {
+                                "type": "VARIABLE",
+                                "columnIdx": 4
+                            }
+                        }
+                    ],
+                    "opName": "Apply",
+                    "opType": "Apply",
+                    "opId": 2,
+                    "argChild": 1
+                },
+                {
+                    "opId": 3,
+                    "opName": "ShuffleProducer",
+                    "argChild": 2,
+                    "opType": "ShuffleProducer",
+                    "argPf": {
+                        "indexes": [
+                            0,
+                            1,
+                            3
+                        ],
+                        "type": "MultiFieldHash"
+                    }
+                }
+            ]
+        },
+        {
+            "operators": [
+                {
+                    "opId": 4,
+                    "opName": "ShuffleConsumer",
+                    "opType": "ShuffleConsumer",
+                    "argOperatorId": 3
+                },
+                {
+                    "opId": 5,
+                    "opType": "InMemoryOrderBy",
+                    "opName": "InMemSort(edges)",
+                    "argChild": 4,
+                    "argSortColumns": [
+                        0,
+                        1,
+                        3,
+                        4
+                    ],
+                    "argAscending": [
+                        true,
+                        true,
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "opType": "DbInsert",
+                    "argChild": 5,
+                    "opName": "Store",
+                    "argOverwriteTable": true,
+                    "opId": 6,
+                    "relationKey": {
+                        "userName": "public",
+                        "relationName": "edgesConnectedSplitSort",
+                        "programName": "vulcan"
+                    }
+                }
+            ]
+        }
+    ],      
+    "logicalRa": "sort",
+    "rawQuery": "sort"
+}
