@@ -1,6 +1,6 @@
 sudo ufw allow/disable port_number_here
 
-curl -i -XPOST https://rest.myria.cs.washington.edu:1776/query -H "Content-type: application/json"  -d @./broadcastGrpsToCompute.json
+curl -i -XPOST https://rest.myria.cs.washington.edu:1776/query -H "Content-type: application/json"  -d @./sortConnectedEdges.json
 
 RUN ORDER
 

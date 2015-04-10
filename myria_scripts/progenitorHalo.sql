@@ -4,7 +4,7 @@ edges = scan(public:vulcan:edgesTree);
 --the first progenitor
 progenitors = [from edges where currentTime = 1 emit nowGroup, currentTime as currentTime, currentGroup];
 
-maxShared = [from edges emit nowGroup,currentTime, currentGroup, max(sharedParticleCount) as maxSharedParticleCount];
+maxShared = [from edges emit nowGroup, currentTime, currentGroup, max(sharedParticleCount) as maxSharedParticleCount];
 
 I = [2 as i];
 
@@ -28,8 +28,8 @@ store(progenitors, public:vulcan:progen);
 
 progenitors = scan(public:vulcan:progen);
 --gets only halos in tree
-haloTable1 = [from scan(public:vulcan:haloTable) h, edges e where h.nowGroup = e.nowGroup and h.grpID = e.currentGroup and h.timeStep = e.currentTime emit h.*];
-haloTable2 = [from scan(public:vulcan:haloTable) h, edges e where h.nowGroup = e.nowGroup and h.grpID = e.nextGroup and h.timeStep = e.currentTime+1 emit h.*];
+haloTable1 = [from scan(public:vulcan:haloTable) h, edges e where h.grpID = e.currentGroup and h.timeStep = e.currentTime emit e.nowGroup, h.*];
+haloTable2 = [from scan(public:vulcan:haloTable) h, edges e where h.grpID = e.nextGroup and h.timeStep = e.currentTime+1 emit e.nowGroup, h.*];
 haloTable = distinct(haloTable1 + haloTable2);
 
 findProg = [from haloTable h, progenitors p where h.nowGroup = p.nowGroup and h.grpID = p.currentGroup and h.timeStep = p.currentTime emit h.*];
