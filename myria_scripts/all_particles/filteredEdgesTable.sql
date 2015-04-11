@@ -1,16 +1,16 @@
 --EdgesInit (currentGroup, currentTime, nextGroup, sharedParticles)
 --HaloTable (grpID, timeStep, mass, totalParticles, HI)
-edgesInit = [from scan(public:vulcan:edgesInit) e where e.sharedParticleCount > 5000 emit e.currentGroup, e.currentTime, e.nextGroup, e.sharedParticleCount];
+edgesInit = [from scan(public:vulcan:edgesInit) e where e.sharedParticleCount > 5000 emit e.currentTime, e.currentGroup, e.nextGroup, e.sharedParticleCount];
 --haloTable = [from scan(public:vulcan:haloTable) h where h.totalParticles > 256 emit h.*];
 
-edges = [from edgesInit where currentTime = 1 emit currentGroup as nowGroup, currentGroup, currentTime, nextGroup, sharedParticleCount];
+edges = [from edgesInit where currentTime = 1 emit currentGroup as nowGroup, currentTime, currentGroup, nextGroup, sharedParticleCount];
 I = [1 as i];
 maxTime = [from edgesInit emit max(currentTime) as maxT];
 
 do
     delta = [from edges as e1, edgesInit as e2, I
         where e1.nextGroup = e2.currentGroup and e1.currentTime+1 = e2.currentTime and e1.currentTime = I.i
-        emit e1.nowGroup, e2.currentGroup, e2.currentTime, e2.nextGroup, e2.sharedParticleCount];
+        emit e1.nowGroup, e2.currentTime, e2.currentGroup, e2.nextGroup, e2.sharedParticleCount];
     edges = distinct(delta + edges);
     I = [from I emit i+1 as i];
 while [from I, maxTime where I.i < maxTime.maxT emit count(*) > 0];
@@ -41,6 +41,6 @@ apply RunningRank(haloGrp)
 };
 
 rankedEdges = [from scan(public:vulcan:edgesConnectedSplitSort) as e emit e.nowGroup, e.currentTime,  RunningRank(e.nextGroup) as splitOrder, e.currentGroup, e.nextGroup, e.sharedParticleCount];
-edges = [from rankedEdges where splitOrder = 1 emit nowGroup, currentGroup, currentTime, nextGroup, sharedParticleCount];
+edges = [from rankedEdges where splitOrder = 1 emit nowGroup, currentTime, currentGroup, nextGroup, sharedParticleCount];
 store(edges, public:vulcan:edgesTree);
 

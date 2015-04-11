@@ -22,14 +22,14 @@
                             }
                         },
                         {
-                            "outputName": "currentGroup",
+                            "outputName": "currentTime",
                             "rootExpressionOperator": {
                                 "type": "VARIABLE",
                                 "columnIdx": 1
                             }
                         },
                         {
-                            "outputName": "currentTime",
+                            "outputName": "currentGroup",
                             "rootExpressionOperator": {
                                 "type": "VARIABLE",
                                 "columnIdx": 2
