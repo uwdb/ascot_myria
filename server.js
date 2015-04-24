@@ -109,7 +109,7 @@ app.post('/myria/postquery', function(req, postResponse) {
   var queryString = req.param('queryString');
   console.log("query at server: ", queryString);
   request({
-    "url":'https://myria-web.appspot.com/execute',
+    "url":'http://service.myria.cs.washington.edu/execute',
     "method": "POST",
     "form": {
       query: queryString,
