@@ -3,7 +3,7 @@ function displayMergerTree(raw_links, raw_nodes, raw_times, selectedGroup) {
 //var doc = document.documentElement;
 //var clientWidth = Math.min(doc.clientWidth-50, 1600);
 //var clientHeight = doc.clientHeight;
-var clientWidth = 1010;
+var clientWidth = 1300;
 var clientHeight = 850;
 var margin = {top: 60, right: 20, bottom: 20, left: 20},
 width = clientWidth - margin.right - margin.left,

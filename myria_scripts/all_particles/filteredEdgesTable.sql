@@ -1,6 +1,6 @@
 --EdgesInit (currentGroup, currentTime, nextGroup, sharedParticles)
 --HaloTable (grpID, timeStep, mass, totalParticles, HI)
-edgesInit = [from scan(public:vulcan:edgesInit) e where e.sharedParticleCount > 2000 emit e.currentTime, e.currentGroup, e.nextGroup, e.sharedParticleCount];
+edgesInit = [from scan(public:vulcan:edgesInit) e where e.sharedParticleCount > 1000 emit e.currentTime, e.currentGroup, e.nextGroup, e.sharedParticleCount];
 --haloTable = [from scan(public:vulcan:haloTable) h where h.totalParticles > 256 emit h.*];
 
 edges = [from edgesInit where currentTime = 1 emit currentGroup as nowGroup, currentTime, currentGroup, nextGroup, sharedParticleCount];
