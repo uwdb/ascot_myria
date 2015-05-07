@@ -188,9 +188,9 @@ var brushParticle = d3.svg.brush()
     
 //adding brushes to panels
 var svgBrushMass = d3.select("#massPanel").append("svg")
-    .attr("height", clientHeight/8+40);
+    .attr("height", clientHeight/8+40).attr("width", 500);
 var svgBrushParticle = d3.select("#particlePanel").append("svg")
-    .attr("height", clientHeight/8+40);
+    .attr("height", clientHeight/8+40).attr("width", 500);
     
 //transform position to brush 
 var contextMass = svgBrushMass.append("g")

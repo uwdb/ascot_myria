@@ -305,7 +305,7 @@
   // This method is used to check for the completion of any query to myria
   var tryGetResult = function(queryId, queryTypeEnum) {
     // Keep enquiring for the query status until the status is success.
-    username = document.getElementById('mergerTreeUsername').value;
+
     switch(queryTypeEnum) {
       case queryType.MERGER_GET_TREE_1:
       $.get(MYRIA_QUERYSTATUS_URL, {query: queryId}, function(res) {
@@ -359,7 +359,6 @@
 
   // After getting the nodes table we are now getting the computed edges table
   var getSecondMergerTreeQueryResult = function(data) {
-    username = document.getElementById('mergerTreeUsername').value;
     $.get(MYRIA_GETDATA_URL, {user: username, program: "myMerger"+program, table: "edges"}, function(res) {
       displayMergerTreeResult(data,res);
     }, 'json');
@@ -373,7 +372,6 @@
     clearPreviousMergerTreeDisplay();
 
     selectedGroup = document.getElementById('mergerTreeGroups').value;
-    username = document.getElementById('mergerTreeUsername').value;
 
     showVizLoadingIcon(true);
     var queryString = s.sprintf('T1 = SELECT * FROM scan(%s:%s:%s) as R WHERE R.%s=%s; store(T1, %s:%s:%s);', defaultUser, program, nodestable, nowGroupAttr, selectedGroup, username, "myMerger"+program, "nodes");
@@ -383,7 +381,7 @@
   //This function queries and populates the list of available group ids
   var populateGroupIdMenu = function(tableName) {
     console.log("inside populateGroupIdMenu");
-    $.get(MYRIA_GETDATA_URL, {user: document.getElementById('mergerTreeUsername').value, program: 'myMerger' + program, table: tableName}, function(res) {
+    $.get(MYRIA_GETDATA_URL, {user: username, program: 'myMerger' + program, table: tableName}, function(res) {
       showGroupLoadingIcon(false);
       document.getElementById("mergerTreeGroups").disabled=false;
 
@@ -414,11 +412,15 @@
   // Run when user clicks the "generate groups" button
   // Organizes when to go through which function - depends on which parameters are filled in
   var prepareGroupIdQuery = function() {
-    if (document.getElementById('mergerTreeUsername').value == '')
+    username = document.getElementById('mergerTreeUsername').value;
+    if (username == '')
     {
       displayErrorMessage('Must enter a username');
       return;
     }
+    //username finalized here for the rest of the steps
+    username = username.replace(/\s+/g, '');
+
     var massSelection = document.getElementById("massSelection");
     var massChoice = massSelection.options[massSelection.selectedIndex].text;
     if (massChoice == "Custom") {
@@ -451,7 +453,6 @@
   // Sends query to get group ids
   var sendGroupIdQuery = function(selectedMinMassRange, selectedMaxMassRange) {
     console.log("Sending Group Query")
-    username = document.getElementById('mergerTreeUsername').value;
 
     var queryString = s.sprintf('T1 = scan(%s:%s:%s); T2 = [from T1 where %s = 1 and %s <= %.1f and %s >= %.1f emit %s, %s]; store(T2, %s:myMerger%s:GroupIds);', defaultUser, program, nodestable, timeStepAttr, massAttr, +selectedMaxMassRange, massAttr, +selectedMinMassRange, nowGroupAttr, massAttr, username, program);
     
