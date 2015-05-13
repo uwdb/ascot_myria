@@ -1,10 +1,17 @@
 RUN ORDER
 
-createPOI.json
-groupsOfInterest.json
-localHaloTable.json
-shuffleConsumeProduceHaloTable.json
-createEdgesTable.sql \ sortConnectedEdges.json (sortConnectedEdges.json used halfway through createEdgesTable.sql)
+localEdges.json
+localNodes.json
+
+globalEdges.json
+globalNodes.json —CHANGE CONSTANT and ATTRIBUTES
+
+
+filteredEdgesTable —CHANGE LIMIT ON SHARED
+sortConnectedEdges (in between) - 
+rest of FilteredEdgesTable
+
+
 pregenitorHalo.sql
-sortByChildMass.json
+sortByChildMass.json — CHANGED FOR HI
 massRatio.sql
