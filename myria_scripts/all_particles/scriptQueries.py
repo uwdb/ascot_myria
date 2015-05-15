@@ -1,19 +1,29 @@
+from raco.catalog import FromFileCatalog
+import raco.myrial.parser as parser
+import raco.myrial.interpreter as interpreter
+import raco.algebra as alg
+from raco.expression.expression import UnnamedAttributeRef
 
 
-def printSQLParticleJoin(snapshotFileName):
-    output = []
-    f_in = open(snapshotFileName, "r")
-    for line in f_in:
-        values = line.split(",")
-        output.append(int(values[0]), values[1])
-    f_in.close() 
-    sorted(output, key=lambda x: x[0])
-    sqlLine = 'SELECT p1.\\\"nowGroup\\\", p1.\\\"iOrder\\\" as iOrder, p1.mass, p1.\\\"HI\\\", p1.redShift, p1.type, {timestep:s} as timestep, p1.grp FROM \\\"public:vulcan:snapshot{snapshot:s}Hash WHERE p1.grp>-1\\\" p1'
-    for pair in output:
-        print sqlLine.format(timestep = pair[0], snapshot = pair[1])
+catalog = FromFileCatalog.load_from_file("vulcan.py")
+_parser = parser.Parser()
 
-if __name__=='__main__':
-    try:
-        printSQLParticleJoin(args[1])
-    catch:
-        print "The format of the snapshot file needs to be <timestep, snapshot> per line (order doesn't matter)"
+#myrial statements not yet algebra
+statement_list = _parser.parse("T1 = scan(public:vulcan:edgesConnected);store(T1, public:vulcan:edgesConnectedSort);")
+
+processor = interpreter.StatementProcessor(catalog, True)
+
+#goes through statement list and gets the logical plan (processor has it)
+processor.evaluate(statement_list)
+
+p = processor.get_logical_plan()
+
+tail = p.args[0].input
+p.args[0].input = alg.Shuffle(tail, [UnnamedAttributeRef(0), UnnamedAttributeRef(1), UnnamedAttributeRef(3)])
+
+
+p = processor.get_physical_plan()
+
+p = processor.get_json()
+
+print p
